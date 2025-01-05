@@ -45,5 +45,10 @@
 # Log 
 - [todo]
 
+- [0.11] svelte layouts and pages
+    - 05-Jan-2024 
+        - layouts
+        - different pages
+
 - [0.10] template initialization
     - 05-Jan-2024 init project
