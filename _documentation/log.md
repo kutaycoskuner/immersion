@@ -45,6 +45,11 @@
 # Log 
 - [todo]
 
+- [0.12] data separation; parameter routing
+    - 06-Jan-2024 
+        - parameter routing
+        - data import
+
 - [0.11] svelte layouts and pages
     - 05-Jan-2024 
         - layouts

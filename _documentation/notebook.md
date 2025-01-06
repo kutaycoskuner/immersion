@@ -48,6 +48,9 @@
             - npm
 
 # Links
+- svelte tutorials
+    - https://svelte.dev/tutorial/svelte/welcome-to-svelte
+
 - svelte kit first project link
     - https://svelte.dev/docs/kit
 
