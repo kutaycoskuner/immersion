@@ -45,6 +45,13 @@
 # Log 
 - [todo]
 
+- [0.13] basic modularity, cookies
+    - 07-Jan-2024
+        - navigation component minimal example
+        - lib (components) folder
+        - setheader getcookies functions
+        - layout data 
+
 - [0.12] data separation; parameter routing
     - 06-Jan-2024 
         - parameter routing
