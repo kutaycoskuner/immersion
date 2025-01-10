@@ -17,6 +17,8 @@
     - yarn run dev --open 
     
 - deployment
+    - yarn add @sveltejs/adapter-static`
+    - https://svelte.dev/docs/kit/adapter-static
 - testing
 
 - creation
@@ -48,7 +50,7 @@
             - npm
 
 # Links
-- svelte tutorials
+- svelte tutorialsf
     - https://svelte.dev/tutorial/svelte/welcome-to-svelte
 
 - svelte kit first project link

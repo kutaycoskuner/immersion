@@ -45,6 +45,9 @@
 # Log 
 - [todo]
 
+- [0.14] deployment test
+    - 11-Jan-2024 deployment test
+
 - [0.13] basic modularity, cookies
     - 07-Jan-2024
         - navigation component minimal example
