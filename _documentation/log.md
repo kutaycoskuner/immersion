@@ -44,26 +44,38 @@
 
 # Log 
 - [todo]
+    - todo set routes to base for deployment
+    - add three js
+    - add markdown rendering with footnotes and toc
+    - add json render
+    - fix deployment problems
+
+- [0.15] add basic markdown rendering, add gh-pages
+    - 11-Jan-2025
+        - add gh-pages package
+        - add basic markdown rendering
+        - add favicon
+        - add main styles
 
 - [0.14] deployment test
-    - 11-Jan-2024 deployment test
+    - 11-Jan-2025 deployment test
 
 - [0.13] basic modularity, cookies
-    - 07-Jan-2024
+    - 07-Jan-2025
         - navigation component minimal example
         - lib (components) folder
         - setheader getcookies functions
         - layout data 
 
 - [0.12] data separation; parameter routing
-    - 06-Jan-2024 
+    - 06-Jan-2025
         - parameter routing
         - data import
 
 - [0.11] svelte layouts and pages
-    - 05-Jan-2024 
+    - 05-Jan-2025 
         - layouts
         - different pages
 
 - [0.10] template initialization
-    - 05-Jan-2024 init project
+    - 05-Jan-2025 init project

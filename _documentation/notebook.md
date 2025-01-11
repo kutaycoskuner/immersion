@@ -18,6 +18,7 @@
     
 - deployment
     - yarn add @sveltejs/adapter-static`
+    - yarn add gh-pages --dev
     - https://svelte.dev/docs/kit/adapter-static
 - testing
 
@@ -56,7 +57,24 @@
 - svelte kit first project link
     - https://svelte.dev/docs/kit
 
+- deployment
+    - https://www.okupter.com/blog/deploy-sveltekit-website-to-github-pages
+
+- svelte markdown blog
+    - https://joyofcode.xyz/sveltekit-markdown-blog
+
 # Keywords
+
+# Features to implement
+1. [x] deployment
+2. [x] basic component
+3. [ ] state management between components             
+4. [x] markdown rendering / toc / footnotes on static   | blog post
+5. [ ] json data import                                 | blog
+6. [ ] 3d rendering                                     | space
+
+- import main css
+- import lefthoverhav, colormode, gotoup, imageslider
 
 # Structure
 
