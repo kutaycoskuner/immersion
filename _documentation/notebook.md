@@ -17,9 +17,12 @@
     - yarn run dev --open 
     
 - deployment
+    - https://svelte.dev/docs/kit/adapter-static
     - yarn add @sveltejs/adapter-static`
     - yarn add gh-pages --dev
-    - https://svelte.dev/docs/kit/adapter-static
+
+    
+
 - testing
 
 - creation

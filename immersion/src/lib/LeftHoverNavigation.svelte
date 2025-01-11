@@ -1,15 +1,16 @@
 <script lang="ts">
+    import { base } from '$app/paths';
 	import * as config from '$lib/config'
 </script>
 
 
 <!-- src/lib/components/Nav.svelte -->
 <nav>
-	<a href="/">home</a>
-	<a href="/about">about</a>
-	<a href="/blog">blog</a>
-	<a href="/api/posts">md_render</a>
-	<a href="/_test/deeply/nested/route">deep</a>
+	<a href="{base}/">blog</a>
+	<a href="{base}/about">about</a>
+	<a href="{base}/blog">blog</a>
+	<a href="{base}/api/posts">md_api</a>
+	<a href="{base}/_test/deeply/nested/route">libs_test</a>
 </nav>
 
 <!-- <style>

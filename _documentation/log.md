@@ -50,6 +50,11 @@
     - add json render
     - fix deployment problems
 
+- [0.16] wip fixing deploy issues
+    - 11-Jan-2024
+        - wip fixing deploy issues
+            - blog data imports not working
+
 - [0.15] add basic markdown rendering, add gh-pages
     - 11-Jan-2025
         - add gh-pages package
