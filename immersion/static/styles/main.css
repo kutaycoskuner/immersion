@@ -181,7 +181,8 @@
     }
 }
 
-.light-mode {
+[color-scheme='light'], .light-mode {
+    color-scheme: light;
     --col: #243746ff;
     --col-1: #128ec4ff;
     --col-2: #0e2233ff;
@@ -204,7 +205,8 @@
     /* --bg-img: url("../img_bg/noisy-background_2k.jpg"); */
 }
 
-.dark-mode {
+[color-scheme='dark'], .dark-mode {
+    color-scheme: dark;
     --col: #ebf4f1ee;
     --col-1: #06b4ba;
     --col-2: #fdf9f3;
@@ -226,6 +228,8 @@
     --bg-transparent: #121212cc;
     /* --bg-img: url("../img_bg/noisy-background_2k.jpg"); */
 }
+
+
 .sepia-mode {
     --col: #433422;
     --col-1: #9ea134;

@@ -50,6 +50,12 @@
     - add json render
     - fix deployment problems
 
+- [0.17.1] publish dev-svelte branch
+
+- [0.17] add color theme
+    - 11-Jan-2024
+        - add color theme
+
 - [0.16] wip fixing deploy issues
     - 11-Jan-2024
         - wip fixing deploy issues
