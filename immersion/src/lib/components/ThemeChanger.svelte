@@ -51,8 +51,8 @@
 
 	.ncolor-mode {
 		position: fixed;
-		top: 2em;
-		right: 2em;
+		top: .2rem;
+		right: .2rem;
 		width: 1.2em;
 		height: 1.2em;
 		/* width: calc(1.2 * var(--font-size));

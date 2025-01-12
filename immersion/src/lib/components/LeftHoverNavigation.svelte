@@ -6,12 +6,23 @@
 
 <!-- src/lib/components/Nav.svelte -->
 <nav>
-	<a href="{base}/">blog</a>
+	<a href="{base}/">home</a>
 	<a href="{base}/about">about</a>
 	<a href="{base}/blog">blog</a>
-	<a href="{base}/api/posts">md_api</a>
-	<a href="{base}/_test/deeply/nested/route">libs_test</a>
+	<!-- <a href="{base}/api/posts">md_api</a> -->
+	<a href="{base}/_test/deeply/nested/route">lib_test</a>
 </nav>
+
+<style>
+	nav {
+		position: fixed;
+		margin: 0;
+		padding: 0;
+		top: 0;
+		left: 0;
+		z-index: 90;
+	}
+</style>
 
 <!-- <style>
 	nav {

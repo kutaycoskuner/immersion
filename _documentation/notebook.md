@@ -52,6 +52,7 @@
             - yes
         - which package manager do you want to install dependencies with?
             - npm
+    - yarn add three
 
 # Links
 - svelte tutorialsf

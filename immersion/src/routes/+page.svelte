@@ -1,57 +1,23 @@
-<!-- <script>
-	let { data } = $props();
+<script>
+	import ThreeScene from '$lib/components/ThreeScene.svelte'; // Import the component
+	import { onMount, onDestroy } from 'svelte';
+
+	onMount(() => {
+		// Add the no-scroll class to the body when the page is loaded
+		document.body.classList.add('no-scroll');
+
+		// Clean up: remove the class when the component is destroyed (if necessary)
+		return () => {
+			document.body.classList.remove('no-scroll');
+		};
+	});
 </script>
 
-<h1>Hello {data.visited ? 'friend' : 'stranger'}!</h1> -->
-
-<script lang="ts">
-	import { formatDate } from '$lib/utils'
-	import * as config from '$lib/config'
-
-	let { data } = $props()
-</script>
-
-<svelte:head>
-	<title>{config.title}</title>
-</svelte:head>
-
-<section>
-	<ul class="posts">
-		{#each data.posts as post}
-			<li class="post">
-				<a href={"blog/md/" + post.slug} class="title">{post.title}</a>
-				<p class="date">{formatDate(post.updated)}</p>
-				<p class="description">{post.description}</p>
-			</li>
-		{/each}
-	</ul>
-</section>
+<main style="margin: 0; padding: 0; overflow: hidden;">
+	<!-- Include ThreeScene component inside the page -->
+	<ThreeScene />
+</main>
 
 <style>
-	.posts {
-		display: grid;
-		gap: var(--size-7);
 
-		.post {
-			max-inline-size: var(--size-content-3);
-
-			&:not(:last-child) {
-				border-bottom: 1px solid var(--border);
-				padding-bottom: var(--size-7);
-			}
-
-			.title {
-				font-size: var(--font-size-fluid-3);
-				text-transform: capitalize;
-			}
-
-			.date {
-				color: var(--text-2);
-			}
-
-			.description {
-				margin-top: var(--size-3);
-			}
-		}
-	}
 </style>

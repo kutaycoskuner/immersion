@@ -50,6 +50,13 @@
     - add json render
     - fix deployment problems
 
+- [0.18] add first three scene in svelte base
+    - 12-Jan-2024 
+        - publish dev-three
+        - add first three js scene/component
+        - add three.js
+        - fix component clutter
+
 - [0.17.1] publish dev-svelte branch
 
 - [0.17] add color theme
