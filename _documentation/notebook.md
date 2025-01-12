@@ -20,10 +20,12 @@
     - https://svelte.dev/docs/kit/adapter-static
     - yarn add @sveltejs/adapter-static`
     - yarn add gh-pages --dev
+    - yarn build
 
     
 
 - testing
+    - yarn global add serve
 
 - creation
     - npx sv create <app-name>
@@ -83,6 +85,9 @@
 # Structure
 
 # Blackboard
+- three.js defaults
+    - right handed
+    - y up
 
 # How to
 

@@ -50,8 +50,14 @@
     - add json render
     - fix deployment problems
 
+- [0.18.1] immersion base scene
+    - 12-Jan-2025
+        - add movement keys
+        - add fading grid
+        - add fading opacity shader
+
 - [0.18] add first three scene in svelte base
-    - 12-Jan-2024 
+    - 12-Jan-2025 
         - publish dev-three
         - add first three js scene/component
         - add three.js
