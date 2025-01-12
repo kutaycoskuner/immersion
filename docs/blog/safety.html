@@ -2,43 +2,64 @@
 <html lang="en">
 	<head>
 		<meta charset="utf-8" />
-		<link rel="icon" href="../favicon.png" />
+		<!-- <link rel="icon" href="../favicon.png" /> -->
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<link rel="icon" type="image/x-icon" href="../favicons/favicon_default_32.ico">
+		<link rel="stylesheet" href="../styles/main.css" />
 		
+		<link href="../_app/immutable/assets/0.CN_EOmmJ.css" rel="stylesheet">
 		<link href="../_app/immutable/assets/3.BudK9koS.css" rel="stylesheet">
-		<link rel="modulepreload" href="../_app/immutable/entry/start.C-HFNcNp.js">
-		<link rel="modulepreload" href="../_app/immutable/chunks/entry.BmugNKFC.js">
-		<link rel="modulepreload" href="../_app/immutable/chunks/runtime.DAeAgcKc.js">
-		<link rel="modulepreload" href="../_app/immutable/chunks/index-client.B31SwgJT.js">
-		<link rel="modulepreload" href="../_app/immutable/entry/app.tQQn9R1g.js">
-		<link rel="modulepreload" href="../_app/immutable/chunks/render.ysVvMn-T.js">
-		<link rel="modulepreload" href="../_app/immutable/chunks/disclose-version.C2k6qm2s.js">
-		<link rel="modulepreload" href="../_app/immutable/nodes/0.NaeC0SGj.js">
-		<link rel="modulepreload" href="../_app/immutable/chunks/snippet.DSnKLwr4.js">
-		<link rel="modulepreload" href="../_app/immutable/chunks/legacy.D29VVQMQ.js">
-		<link rel="modulepreload" href="../_app/immutable/nodes/2.BWGhhBM6.js">
-		<link rel="modulepreload" href="../_app/immutable/nodes/3.BMzSagWp.js">
-		<link rel="modulepreload" href="../_app/immutable/chunks/attributes.B_QmqDBf.js">
-		<link rel="modulepreload" href="../_app/immutable/nodes/7.BWUGQ8vp.js">
+		<link rel="modulepreload" href="../_app/immutable/entry/start.D6oK9RKb.js">
+		<link rel="modulepreload" href="../_app/immutable/chunks/entry.cCBQbS4x.js">
+		<link rel="modulepreload" href="../_app/immutable/chunks/runtime.D4E1x-04.js">
+		<link rel="modulepreload" href="../_app/immutable/chunks/paths.Ci1ym19r.js">
+		<link rel="modulepreload" href="../_app/immutable/chunks/control.CYgJF_JY.js">
+		<link rel="modulepreload" href="../_app/immutable/chunks/index-client.Bj5GiDZF.js">
+		<link rel="modulepreload" href="../_app/immutable/entry/app.DHa-ospS.js">
+		<link rel="modulepreload" href="../_app/immutable/chunks/preload-helper.ivlN3VWm.js">
+		<link rel="modulepreload" href="../_app/immutable/chunks/render.DuXkNAQf.js">
+		<link rel="modulepreload" href="../_app/immutable/chunks/events.ChC3fpjE.js">
+		<link rel="modulepreload" href="../_app/immutable/chunks/disclose-version.CvJz2SVy.js">
+		<link rel="modulepreload" href="../_app/immutable/chunks/if.DwevikCV.js">
+		<link rel="modulepreload" href="../_app/immutable/chunks/this.DrTC8O1j.js">
+		<link rel="modulepreload" href="../_app/immutable/nodes/0.D-C1KkXw.js">
+		<link rel="modulepreload" href="../_app/immutable/chunks/snippet.Cr-4dh9Z.js">
+		<link rel="modulepreload" href="../_app/immutable/chunks/legacy.Bp2UftgY.js">
+		<link rel="modulepreload" href="../_app/immutable/chunks/attributes.C8EFJwY0.js">
+		<link rel="modulepreload" href="../_app/immutable/chunks/lifecycle.BR4pe3Af.js">
+		<link rel="modulepreload" href="../_app/immutable/nodes/2.BrrGy9YP.js">
+		<link rel="modulepreload" href="../_app/immutable/nodes/3.BYiYHAkM.js">
+		<link rel="modulepreload" href="../_app/immutable/chunks/each.EJim1Ww6.js">
+		<link rel="modulepreload" href="../_app/immutable/nodes/8.BIxlXZx8.js">
+		<link rel="modulepreload" href="../_app/immutable/chunks/html.BU1nFIR5.js">
+
+		<script type="module">
+			const theme = localStorage.getItem('color-theme')
+
+			theme
+				? document.documentElement.setAttribute('color-theme', theme)
+				: localStorage.setItem('color-theme', 'light')
+		</script>
+	
 	</head>
 	<body data-sveltekit-preload-data="hover">
-		<div style="display: contents"><!--[--><!--[--><!----><nav><a href="/">home</a> <a href="/about">about</a> <a href="/blog">blog</a> <a href="/_test/deeply/nested/route">deep</a></nav><!----> <!--[--><!----><!--[--><!----><div class="layout svelte-1ubx6uq"><main><!----><h1>blog post</h1> <h1>Safety notice</h1> <div><!----><p>While safety is one of many Enrichment Center Goals, the Aperture Science High Energy Pellet, seen to the left of the chamber, can and has caused permanent disabilities, such as vaporization. Please be careful.</p><!----></div><!----><!----></main> <aside><h2>More posts</h2> <ul><!--[--><li><a href="/blog/welcome">Welcome to the Aperture Science computer-aided enrichment center</a></li><li><a href="/blog/safety">Safety notice</a></li><li><a href="/blog/cake">This was a triumph</a></li><!--]--></ul></aside></div><!----><!--]--><!----><!----><!--]--><!----><!----><!--]--> <!--[!--><!--]--><!--]-->
+		<div style="display: contents"><!--[--><!--[--><!----><button class="ncolor-mode svelte-18asxfi" aria-label="Toggle theme"><!--[!--><div class="light-mode"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v2.25m6.364.386l-1.591 1.591M21 12h-2.25m-.386 6.364l-1.591-1.591M12 18.75V21m-4.773-4.227l-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z"></path></svg></div><!--]--></button><!----> <nav class="svelte-1wwbcka"><a href="../">home</a> <a href="../about">about</a> <a href="../blog">blog</a> <a href="../_test/deeply/nested/route">lib_test</a></nav><!----> <!--[--><!----><!--[--><!----><div class="layout svelte-1ubx6uq"><main><!----><h1>blog post</h1> <h1>Safety notice</h1> <div><!----><p>While safety is one of many Enrichment Center Goals, the Aperture Science High Energy Pellet, seen to the left of the chamber, can and has caused permanent disabilities, such as vaporization. Please be careful.</p><!----></div><!----><!----></main> <aside><h2>More posts</h2> <ul><!--[--><li><a href="/blog/welcome">Welcome to the Aperture Science computer-aided enrichment center</a></li><li><a href="/blog/safety">Safety notice</a></li><li><a href="/blog/cake">This was a triumph</a></li><!--]--></ul></aside></div><!----><!--]--><!----><!----><!--]--><!----><!----><!--]--> <!--[!--><!--]--><!--]-->
 			
 			<script>
 				{
-					__sveltekit_1mttl9v = {
+					__sveltekit_uu9pxx = {
 						base: new URL("..", location).pathname.slice(0, -1)
 					};
 
 					const element = document.currentScript.parentElement;
 
 					Promise.all([
-						import("../_app/immutable/entry/start.C-HFNcNp.js"),
-						import("../_app/immutable/entry/app.tQQn9R1g.js")
+						import("../_app/immutable/entry/start.D6oK9RKb.js"),
+						import("../_app/immutable/entry/app.DHa-ospS.js")
 					]).then(([kit, app]) => {
 						kit.start(app, element, {
-							node_ids: [0, 2, 3, 7],
-							data: [null,{"type":"data","data":{summaries:[{slug:"welcome",title:"Welcome to the Aperture Science computer-aided enrichment center"},{slug:"safety",title:"Safety notice"},{slug:"cake",title:"This was a triumph"}]},"uses":{}},null,{"type":"data","data":{post:{slug:"safety",title:"Safety notice",content:"\u003Cp>While safety is one of many Enrichment Center Goals, the Aperture Science High Energy Pellet, seen to the left of the chamber, can and has caused permanent disabilities, such as vaporization. Please be careful.\u003C/p>"}},"uses":{"params":["slug"]}}],
+							node_ids: [0, 2, 3, 8],
+							data: [{"type":"data","data":null,"uses":{}},{"type":"data","data":{summaries:[{slug:"welcome",title:"Welcome to the Aperture Science computer-aided enrichment center"},{slug:"safety",title:"Safety notice"},{slug:"cake",title:"This was a triumph"}]},"uses":{}},null,{"type":"data","data":{post:{slug:"safety",title:"Safety notice",content:"\u003Cp>While safety is one of many Enrichment Center Goals, the Aperture Science High Energy Pellet, seen to the left of the chamber, can and has caused permanent disabilities, such as vaporization. Please be careful.\u003C/p>"}},"uses":{"params":["slug"]}}],
 							form: null,
 							error: null
 						});
