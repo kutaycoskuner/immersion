@@ -49,6 +49,20 @@
     - add markdown rendering with footnotes and toc
     - add json render
     - fix deployment problems
+    - add glsl import
+
+- [0.18.3] fix scene error mesages, update readme
+    - 15-Jan-2025
+        - update readme
+        - wip .glsl importing
+        - fix three scene problems
+        - wip infinite grid
+        - wip infinite axis lines
+
+- [0.18.2]
+    - 15-Jan-2025 
+        - added change build folder
+        - added gitignore build and docs
 
 - [0.18.1] immersion base scene
     - 12-Jan-2025

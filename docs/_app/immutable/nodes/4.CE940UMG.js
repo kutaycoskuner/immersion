@@ -1,1 +1,0 @@
-import{a as s,t as o}from"../chunks/disclose-version.C2k6qm2s.js";import{p,t as m,a as i,g as f,r as n}from"../chunks/runtime.DAeAgcKc.js";import{s as d}from"../chunks/render.ysVvMn-T.js";var h=o("<h1> </h1>");function g(e,a){p(a,!0);var t=h(),r=f(t);n(t),m(()=>d(r,`Hello ${(a.data.visited?"friend":"stranger")??""}!`)),s(e,t),i()}export{g as component};

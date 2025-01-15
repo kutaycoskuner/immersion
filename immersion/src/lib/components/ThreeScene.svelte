@@ -1,42 +1,27 @@
-<script>
+<script lang="ts">
 	import { onMount } from 'svelte';
 	import * as THREE from 'three';
+	import { fadingGridLines } from '$lib/shaders/FadingGridLines.ts';
+	// import { infiniteAxes } from '$lib/shaders/InfiniteAxes.ts';
+	import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
-	let canvas;
-	let keyStates = {}; // Track pressed keys
+	let canvas: HTMLCanvasElement;
+	let keyStates: { [key: string]: boolean } = {};
 
-	const material = new THREE.ShaderMaterial({
-		vertexShader: `
-        varying vec3 vWorldPosition;
-
-        void main() {
-            vec4 worldPosition = modelMatrix * vec4(position, 1.0);
-            vWorldPosition = worldPosition.xyz;
-            gl_Position = projectionMatrix * viewMatrix * worldPosition;
-        }`,
-		fragmentShader: `
-        varying vec3 vWorldPosition;
-
-        void main() {
-            float distanceFromOrigin = length(vWorldPosition);
-            float opacity = 0.9 - distanceFromOrigin / 10.0;
-			opacity = clamp(opacity, 0.0, 0.5);
-            gl_FragColor = vec4(0.0, 0.0, 0.0, opacity);
-        }`,
-		transparent: true,
-		vertexColors: false,
-	});
-
-	function getSimpleLine(offset, dimension) {
-		const end_value = 10.0;
+	function getSimpleLine(
+		half_size: number,
+		offset: number,
+		axis: string,
+		material: THREE.Material
+	) {
 		let points;
-		if (dimension == 'z')
-			points = [new THREE.Vector3(-end_value, 0, 0), new THREE.Vector3(end_value, 0, 0)];
-		else points = [new THREE.Vector3(0, 0, -end_value), new THREE.Vector3(0, 0, end_value)];
+		if (axis == 'z')
+			points = [new THREE.Vector3(-half_size, 0, 0), new THREE.Vector3(half_size, 0, 0)];
+		else points = [new THREE.Vector3(0, 0, -half_size), new THREE.Vector3(0, 0, half_size)];
 
 		const geometry = new THREE.BufferGeometry().setFromPoints(points);
 		const line = new THREE.Line(geometry, material);
-		if (dimension == 'z') line.position.z = offset;
+		if (axis == 'z') line.position.z = offset;
 		else line.position.x = offset;
 
 		return line;
@@ -44,10 +29,12 @@
 
 	onMount(() => {
 		// Set up the scene
+		// -------------------------------------------------------------------------------
 		const scene = new THREE.Scene();
 		scene.background = new THREE.Color(0xffffff);
 
 		// Set up the camera
+		// -------------------------------------------------------------------------------
 		const camera = new THREE.PerspectiveCamera(
 			75,
 			window.innerWidth / window.innerHeight,
@@ -58,8 +45,10 @@
 		camera.lookAt(0, 0, 0);
 
 		// Set up the renderer
-		const renderer = new THREE.WebGLRenderer({ canvas });
+		// -------------------------------------------------------------------------------
+		const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
 		renderer.setSize(window.innerWidth, window.innerHeight);
+		const controls = new OrbitControls(camera, renderer.domElement);
 
 		// Handle window resize
 		const resize = () => {
@@ -69,20 +58,26 @@
 		};
 		window.addEventListener('resize', resize);
 
-		// Add grid lines
+		// Add scene nodes
+		// -------------------------------------------------------------------------------
 		for (let i = -10; i < 10; i++) {
-			scene.add(getSimpleLine(i, 'x'));
-			scene.add(getSimpleLine(i, 'z'));
+			scene.add(getSimpleLine(10, i, 'x', fadingGridLines));
+			scene.add(getSimpleLine(10, i, 'z', fadingGridLines));
 		}
 
-		// Camera movement
+		// scene.add(getSimpleLine(10, 0, 'x', infiniteAxes));
+
+		// add controls
+		// -------------------------------------------------------------------------------
 		const movementSpeed = 0.1;
 		const rotationSpeed = 0.02;
 
 		function updateCamera() {
 			if (keyStates['w']) {
 				// Move forward
-				camera.position.add(camera.getWorldDirection(new THREE.Vector3()).multiplyScalar(movementSpeed));
+				camera.position.add(
+					camera.getWorldDirection(new THREE.Vector3()).multiplyScalar(movementSpeed)
+				);
 			}
 			if (keyStates['s']) {
 				// Move backward
@@ -125,7 +120,5 @@
 	});
 </script>
 
-<canvas
-	bind:this={canvas}
-	style="display: block; margin: 0; padding: 0; overflow: hidden;"
+<canvas bind:this={canvas} style="display: block; margin: 0; padding: 0; overflow: hidden;"
 ></canvas>

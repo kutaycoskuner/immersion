@@ -22,7 +22,8 @@
     - yarn add gh-pages --dev
     - yarn build
 
-    
+- delete modules
+    - yarn remove gh-pages
 
 - testing
     - yarn global add serve
@@ -54,7 +55,7 @@
             - yes
         - which package manager do you want to install dependencies with?
             - npm
-    - yarn add three
+    - yarn add @types/three --dev
 
 # Links
 - svelte tutorialsf
