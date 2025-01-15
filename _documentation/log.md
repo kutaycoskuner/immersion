@@ -51,6 +51,10 @@
     - fix deployment problems
     - add glsl import
 
+- [0.18.4] fix build configuration
+    - 15-Jan-2025
+        - fix build configuration
+
 - [0.18.3] fix scene error mesages, update readme
     - 15-Jan-2025
         - update readme

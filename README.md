@@ -11,7 +11,7 @@
     <img alt="Node.js" src="https://img.shields.io/badge/Node.js-22.12.0-green?logo=node.js&logoColor=white" />
     <img alt="Three.js" src="https://img.shields.io/badge/Three.js-0.172.0-black?logo=three.js&logoColor=white" />
     <img alt="Yarn" src="https://img.shields.io/badge/Yarn-1.22.22-blue?logo=yarn&logoColor=white" />
-    <img alt="Version" src="https://img.shields.io/badge/Version-0.18.3-blue" />
+    <img alt="Version" src="https://img.shields.io/badge/Version-0.18.4-blue" />
     <img alt="dev last update" src="https://img.shields.io/github/last-commit/kutaycoskuner/immersion/dev" />
 </p>
 
@@ -25,8 +25,8 @@
 ## Installation and Run
 
 ### Prerequisites
-- **Node.js**: Version 16 or higher
-- **Yarn**: Yarn package manager (Optional, but recommended for better performance)
+- **Node.js**: Version 22 or higher
+- **Yarn**: Yarn package manager (Optional, but recommended)
 
 ### Installation Steps
 1. Clone the repository:
