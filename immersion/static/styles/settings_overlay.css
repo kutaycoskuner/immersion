@@ -488,8 +488,8 @@ p {
 	}
 
 	.overlay-content .overlay-menu button:hover {
-		font-weight: bold;
-		background: var(--col-link-hover-bg);
+		/* font-weight: bold; */
+		/* background: var(--col-link-hover-bg); */
 	}
 
 	.overlay-content .overlay-submenu {

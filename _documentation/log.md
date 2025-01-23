@@ -45,11 +45,18 @@
 # Log 
 - [todo]
     - todo set routes to base for deployment
-    - add three js
     - add markdown rendering with footnotes and toc
     - add json render
-    - fix deployment problems
     - add glsl import
+
+- [0.20.0] added model import, fix color change, uniform on shader
+    - 23-Jan-2025
+        - added display
+        - change color changer also registered in store
+        - add svelte store example import model
+        - add fading grid lines shader uniform option
+        - disabled hover on settings as there is only one option
+        - add gltf uploader (requires all files necessary at once)
 
 - [0.19.0] added settings component
     - 23-Jan-2025

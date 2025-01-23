@@ -11,14 +11,14 @@
     <img alt="Node.js" src="https://img.shields.io/badge/Node.js-22.12.0-green?logo=node.js&logoColor=white" />
     <img alt="Three.js" src="https://img.shields.io/badge/Three.js-0.172.0-black?logo=three.js&logoColor=white" />
     <img alt="Yarn" src="https://img.shields.io/badge/Yarn-1.22.22-blue?logo=yarn&logoColor=white" />
-    <img alt="Version" src="https://img.shields.io/badge/Version-0.19.0-blue" />
+    <img alt="Version" src="https://img.shields.io/badge/Version-0.20.0-blue" />
     <img alt="dev last update" src="https://img.shields.io/github/last-commit/kutaycoskuner/immersion/dev" />
 </p>
 
 <p align="center">
-    <img src="_display/v0.18.2_fading-grid_20250115.gif" />
+    <img src="_display/v0.20.0_model-import_20250123.gif" />
     <br>
-    <sub><i> v0.18.3 Fading grid test</i></sub>
+    <sub><i> v0.20.0 model import</i></sub>
 </p>
 
 

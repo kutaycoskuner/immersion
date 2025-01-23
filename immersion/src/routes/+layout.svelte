@@ -7,7 +7,7 @@
 	let { children } = $props();
 </script>
 
-<!-- <Toggle /> -->
+<Toggle />
 <BasicNavigation />
 <SettingsOverlay />
 <!-- <LeftHoverNavigation /> -->

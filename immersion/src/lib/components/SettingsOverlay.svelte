@@ -1,46 +1,99 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import * as THREE from 'three';
+	import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+	import { modelStore } from '../../store/model_store';
 
 	let overlayVisible: boolean = false;
-
-	// Define the reactive variable with a type
 	let mainSelectionName: string = '';
 
-	// Define the function to handle the click event
-	function setMenu(param1: boolean, param2: boolean, selection: string): void {
-		mainSelectionName = selection;
-		// Add your logic here
-	}
-
-	// Define the file upload handler function
 	function handleFileUpload(event: Event): void {
 		const input = event.target as HTMLInputElement;
-		if (input.files && input.files[0]) {
-			const file = input.files[0];
-			console.log('Uploaded file:', file);
-			// Add your file handling logic here
+		if (input.files) {
+			const files = Array.from(input.files);
+			const fileMap = new Map(files.map((file) => [file.name, file]));
+
+			// Find the main .gltf file
+			const gltfFile = files.find((file) => file.name.endsWith('.gltf'));
+			if (!gltfFile) {
+				console.error('No .gltf file found in the uploaded files.');
+				return;
+			}
+
+			const fileLoader = new THREE.FileLoader();
+			fileLoader.load(
+				URL.createObjectURL(gltfFile),
+				(gltfContent) => {
+					// Ensure gltfContent is a string
+					let gltfContentString: string;
+					if (gltfContent instanceof ArrayBuffer) {
+						const decoder = new TextDecoder('utf-8');
+						gltfContentString = decoder.decode(gltfContent);
+					} else {
+						gltfContentString = gltfContent as string;
+					}
+
+					const json = JSON.parse(gltfContentString);
+
+					// Update relative paths to use the uploaded files
+					const basePath = gltfFile.name.replace(/[^/]+$/, '');
+					if (json.buffers) {
+						json.buffers.forEach((buffer: any) => {
+							const bufferFile = fileMap.get(basePath + buffer.uri);
+							if (bufferFile) {
+								buffer.uri = URL.createObjectURL(bufferFile);
+							}
+						});
+					}
+					if (json.images) {
+						json.images.forEach((image: any) => {
+							const imageFile = fileMap.get(basePath + image.uri);
+							if (imageFile) {
+								image.uri = URL.createObjectURL(imageFile);
+							}
+						});
+					}
+
+					// Load the GLTF model using updated URLs
+					const loader = new GLTFLoader();
+					loader.parse(
+						JSON.stringify(json),
+						'',
+						(gltf) => {
+							console.log('GLTF model loaded:', gltf);
+							modelStore.set(gltf.scene);
+						},
+						(error) => {
+							console.error('Error parsing GLTF model:', error);
+						}
+					);
+				},
+				undefined,
+				(error) => {
+					console.error('Error loading GLTF file:', error);
+				}
+			);
 		}
+		toggleOverlay(false);
+	}
+
+	function setMenu(param1: boolean, param2: boolean, selection: string): void {
+		mainSelectionName = selection;
 	}
 
 	function toggleOverlay(visible?: boolean): void {
-		visible ? (overlayVisible = visible) : (overlayVisible = !overlayVisible);
-
-		if (overlayVisible) {
-			document.body.style.overflow = 'hidden'; // Disable scrolling
-		} else {
-			document.body.style.overflow = ''; // Re-enable scrolling
-		}
-	};
+		overlayVisible = visible !== undefined ? visible : !overlayVisible;
+		document.body.style.overflow = overlayVisible ? 'hidden' : '';
+	}
 
 	function handleKeydown(event: KeyboardEvent): void {
 		if (event.key === 'Escape') {
 			toggleOverlay();
 		}
-	};
+	}
 
 	onMount(() => {
 		window.addEventListener('keydown', handleKeydown);
-
 		return () => {
 			window.removeEventListener('keydown', handleKeydown);
 		};
@@ -52,12 +105,10 @@
 <!-- Overlay -->
 {#if overlayVisible}
 	<div class="overlay">
-		<!-- Close Button -->
 		<button class="overlay-close" on:click={() => toggleOverlay(false)}>
 			<span class="overlay-close-text">Close</span> <span class="overlay-close-icon">&times;</span>
 		</button>
 
-		<!-- Overlay Content -->
 		<div class="overlay-content">
 			<div class="overlay-menu">
 				<button
@@ -83,8 +134,8 @@
 			<div class="overlay-submenu">
 				<div>
 					<label class="custom-file-upload">
-						<input class="default-input" type="file" accept=".gltf" on:change={handleFileUpload} />
-						Click to upload your gltf model
+						<input class="default-input" type="file" multiple on:change={handleFileUpload} />
+						Upload your GLTF model and related files
 					</label>
 				</div>
 			</div>

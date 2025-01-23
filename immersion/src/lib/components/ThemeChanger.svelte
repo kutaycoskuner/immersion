@@ -1,11 +1,16 @@
 <script lang="ts">
 	import { fly } from 'svelte/transition';
-	// import { Moon, Sun } from 'lucide-svelte'
 	import { theme } from '$lib/ColorTheme.svelte';
+
+	let currentTheme: string;
+	// Subscribe to the theme store
+	theme.themeStore.subscribe((value) => {
+		currentTheme = value;
+	});
 </script>
 
 <button class="ncolor-mode" on:click={theme.toggle} aria-label="Toggle theme">
-	{#if theme.current === 'dark'}
+	{#if currentTheme === 'dark'}
 		<div class="dark-mode">
 			<svg
 				xmlns="http://www.w3.org/2000/svg"
@@ -51,24 +56,13 @@
 
 	.ncolor-mode {
 		position: fixed;
-		top: .2rem;
-		right: .2rem;
+		top: 0.2rem;
+		right: 0.2rem;
 		width: 1.2em;
 		height: 1.2em;
-		/* width: calc(1.2 * var(--font-size));
-		height: calc(1.2 * var(--font-size)); */
-		/* padding-left: calc( * var(--font-size)); */
-		/* position: fixed;
-		top: var(--navigation-margin-top);
-		right: var(--navigation-margin-left); */
-		/* margin-top: 4px; */
 		z-index: 20;
 		cursor: pointer;
 		-webkit-touch-callout: none;
-		-webkit-user-select: none;
-		-khtml-user-select: none;
-		-moz-user-select: none;
-		-ms-user-select: none;
 		user-select: none;
 	}
 </style>
