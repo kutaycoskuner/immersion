@@ -51,6 +51,11 @@
     - fix deployment problems
     - add glsl import
 
+- [0.19.0] added settings component
+    - 23-Jan-2025
+        - add settings overlay component base for uploading
+        - add left hover navigation base
+
 - [0.18.4] fix build configuration
     - 15-Jan-2025
         - fix build configuration
