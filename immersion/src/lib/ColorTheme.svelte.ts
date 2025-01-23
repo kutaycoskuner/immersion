@@ -2,7 +2,7 @@ import { writable } from 'svelte/store';
 import { browser } from '$app/environment';
 
 class Theme {
-	private _theme = writable(browser && localStorage.getItem('color-scheme') || 'light');
+	private _theme = writable(browser && localStorage.getItem('color-scheme') || 'dark');
 
 	get current() {
 		let value;

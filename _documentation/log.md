@@ -40,6 +40,7 @@
 - check commitments
 - update version and date
 - update timelog
+- deployment test
 - push
 
 # Log 
@@ -48,6 +49,9 @@
     - add markdown rendering with footnotes and toc
     - add json render
     - add glsl import
+
+- [0.20.1] build chunk size increase, deployment test
+    - 23-Jan-2025
 
 - [0.20.0] added model import, fix color change, uniform on shader
     - 23-Jan-2025

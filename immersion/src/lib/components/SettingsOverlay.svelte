@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import * as THREE from 'three';
-	import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+	import {FileLoader} from 'three';
+	import { GLTFLoader, } from 'three/addons/loaders/GLTFLoader.js';
 	import { modelStore } from '../../store/model_store';
 
 	let overlayVisible: boolean = false;
@@ -20,7 +20,7 @@
 				return;
 			}
 
-			const fileLoader = new THREE.FileLoader();
+			const fileLoader = new FileLoader();
 			fileLoader.load(
 				URL.createObjectURL(gltfFile),
 				(gltfContent) => {
@@ -100,7 +100,6 @@
 	});
 </script>
 
-<link rel="stylesheet" href="styles/settings_overlay.css" />
 
 <!-- Overlay -->
 {#if overlayVisible}

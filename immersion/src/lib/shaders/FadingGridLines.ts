@@ -1,7 +1,7 @@
-import * as THREE from 'three';
+import {ShaderMaterial, Color } from 'three';
 
 // Define the material using Three.js ShaderMaterial
-export const fadingGridLines: THREE.ShaderMaterial = new THREE.ShaderMaterial({
+export const fadingGridLines: ShaderMaterial = new ShaderMaterial({
     vertexShader: `
         varying vec3 vWorldPosition;
 
@@ -25,6 +25,6 @@ export const fadingGridLines: THREE.ShaderMaterial = new THREE.ShaderMaterial({
     transparent: true,
     vertexColors: false,
     uniforms: {
-        uColor: { value: new THREE.Color(0x000000) } // Default color (black)
+        uColor: { value: new Color(0x000000) } // Default color (black)
     }
 });
