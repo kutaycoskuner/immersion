@@ -9,51 +9,58 @@
 		<link rel="stylesheet" href="../../../styles/main.css" />
 		
 		<link href="../../../_app/immutable/assets/0.Cs8k8Yi3.css" rel="stylesheet">
-		<link rel="modulepreload" href="../../../_app/immutable/entry/start.Dchm3Lfm.js">
-		<link rel="modulepreload" href="../../../_app/immutable/chunks/entry.Bg-VZ1fA.js">
-		<link rel="modulepreload" href="../../../_app/immutable/chunks/runtime.B8qfXqKW.js">
-		<link rel="modulepreload" href="../../../_app/immutable/chunks/index.zBXG0G5F.js">
-		<link rel="modulepreload" href="../../../_app/immutable/chunks/paths.E667HeGC.js">
+		<link rel="modulepreload" href="../../../_app/immutable/entry/start.DzWFI7qk.js">
+		<link rel="modulepreload" href="../../../_app/immutable/chunks/entry.C0OVm47n.js">
+		<link rel="modulepreload" href="../../../_app/immutable/chunks/runtime.Dtq7C0pR.js">
+		<link rel="modulepreload" href="../../../_app/immutable/chunks/index.B9RqDZWN.js">
+		<link rel="modulepreload" href="../../../_app/immutable/chunks/paths.BUA4vs17.js">
 		<link rel="modulepreload" href="../../../_app/immutable/chunks/control.CYgJF_JY.js">
-		<link rel="modulepreload" href="../../../_app/immutable/chunks/index-client.0e6GNIlH.js">
-		<link rel="modulepreload" href="../../../_app/immutable/entry/app.BdGz9A5s.js">
-		<link rel="modulepreload" href="../../../_app/immutable/chunks/preload-helper.Dvd6I-iB.js">
-		<link rel="modulepreload" href="../../../_app/immutable/chunks/render.73VzE-Sh.js">
-		<link rel="modulepreload" href="../../../_app/immutable/chunks/events.BxRJdanb.js">
-		<link rel="modulepreload" href="../../../_app/immutable/chunks/disclose-version.CcStZYi8.js">
-		<link rel="modulepreload" href="../../../_app/immutable/chunks/if.G8R3Vf3Y.js">
-		<link rel="modulepreload" href="../../../_app/immutable/chunks/this.C-eMli-I.js">
-		<link rel="modulepreload" href="../../../_app/immutable/nodes/0.DkHpzoaY.js">
-		<link rel="modulepreload" href="../../../_app/immutable/chunks/snippet.CW7ZuUdN.js">
-		<link rel="modulepreload" href="../../../_app/immutable/chunks/legacy.DJG8O6yz.js">
-		<link rel="modulepreload" href="../../../_app/immutable/chunks/attributes.9bGN69wS.js">
-		<link rel="modulepreload" href="../../../_app/immutable/chunks/lifecycle.cxB8EAkU.js">
-		<link rel="modulepreload" href="../../../_app/immutable/chunks/ColorTheme.svelte.4mfvsXJe.js">
-		<link rel="modulepreload" href="../../../_app/immutable/nodes/10.CduNuv0G.js">
+		<link rel="modulepreload" href="../../../_app/immutable/chunks/index-client.C11B_Fq_.js">
+		<link rel="modulepreload" href="../../../_app/immutable/entry/app.lZH6MxaE.js">
+		<link rel="modulepreload" href="../../../_app/immutable/chunks/preload-helper.CMJkTywd.js">
+		<link rel="modulepreload" href="../../../_app/immutable/chunks/render.2OXqtsxe.js">
+		<link rel="modulepreload" href="../../../_app/immutable/chunks/events.D_7WA8EA.js">
+		<link rel="modulepreload" href="../../../_app/immutable/chunks/disclose-version.DgkN-rcT.js">
+		<link rel="modulepreload" href="../../../_app/immutable/chunks/if.B6bwj_MU.js">
+		<link rel="modulepreload" href="../../../_app/immutable/chunks/this.D2x6jGD3.js">
+		<link rel="modulepreload" href="../../../_app/immutable/nodes/0.BL7kvy-V.js">
+		<link rel="modulepreload" href="../../../_app/immutable/chunks/snippet.PwOHi82c.js">
+		<link rel="modulepreload" href="../../../_app/immutable/chunks/legacy.DHix8ONl.js">
+		<link rel="modulepreload" href="../../../_app/immutable/chunks/attributes.BsUBuigB.js">
+		<link rel="modulepreload" href="../../../_app/immutable/chunks/lifecycle.DCxRrh-d.js">
+		<link rel="modulepreload" href="../../../_app/immutable/chunks/ColorTheme.svelte.BULC0iuq.js">
+		<link rel="modulepreload" href="../../../_app/immutable/nodes/10.BcB811b8.js">
 
-		<script type="module">
-			const theme = localStorage.getItem('color-theme')
+		<!-- setting up color theme on init -->
+		<script>
+			(function () {
+				try {
+					const theme = localStorage.getItem('color-scheme') || 'light';
+		
+					document.documentElement.setAttribute('color-scheme', theme);
+					localStorage.setItem('color-scheme', theme);
 
-			theme
-				? document.documentElement.setAttribute('color-theme', theme)
-				: localStorage.setItem('color-theme', 'light')
+				} catch (e) {
+					console.error("LocalStorage access error:", e);
+				}
+			})();
 		</script>
 	
 	</head>
 	<body data-sveltekit-preload-data="hover">
-		<div style="display: contents"><!--[--><!--[--><!----><button class="ncolor-mode svelte-192mvok" aria-label="Toggle theme"><!--[--><div class="dark-mode"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="M21.752 15.002A9.718 9.718 0 0118 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 003 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 009.002-5.998z"></path></svg></div><!--]--></button><!----> <nav class="svelte-1wwbcka"><a href="../../../">home</a> <a href="../../../about">about</a> <a href="../../../blog">blog</a> <a href="../../../_test/deeply/nested/route">lib_test</a></nav><!----> <!--[!--><!--]--><!----> <!--[!--><!----><h1>a deeply nested route</h1> <p>hello from $lib/message</p><!----><!--]--><!----><!----><!--]--> <!--[!--><!--]--><!--]-->
+		<div style="display: contents"><!--[--><!--[--><!----><button class="ncolor-mode svelte-192mvok" aria-label="Toggle theme"><!--[!--><div class="light-mode"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v2.25m6.364.386l-1.591 1.591M21 12h-2.25m-.386 6.364l-1.591-1.591M12 18.75V21m-4.773-4.227l-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z"></path></svg></div><!--]--></button><!----> <nav class="svelte-1wwbcka"><a href="../../../">home</a> <a href="../../../about">about</a> <a href="../../../blog">blog</a> <a href="../../../_test/deeply/nested/route">lib_test</a></nav><!----> <!--[!--><!--]--><!----> <!--[!--><!----><h1>a deeply nested route</h1> <p>hello from $lib/message</p><!----><!--]--><!----><!----><!--]--> <!--[!--><!--]--><!--]-->
 			
 			<script>
 				{
-					__sveltekit_fkn856 = {
+					__sveltekit_1edatg8 = {
 						base: new URL("../../..", location).pathname.slice(0, -1)
 					};
 
 					const element = document.currentScript.parentElement;
 
 					Promise.all([
-						import("../../../_app/immutable/entry/start.Dchm3Lfm.js"),
-						import("../../../_app/immutable/entry/app.BdGz9A5s.js")
+						import("../../../_app/immutable/entry/start.DzWFI7qk.js"),
+						import("../../../_app/immutable/entry/app.lZH6MxaE.js")
 					]).then(([kit, app]) => {
 						kit.start(app, element, {
 							node_ids: [0, 10],
