@@ -49,6 +49,11 @@
     - add markdown rendering with footnotes and toc
     - add json render
 
+- [0.22.0] added drawing vectors with cone tips
+    - 18-Mar-2025
+        - added display
+        - added, drawing vectors with cone tips
+
 - [0.21.0] add separte glsl shader; x, z axis on grid; fix color
     - 18-Mar-2025
         - (13.44-14.14 20m) preview testing
