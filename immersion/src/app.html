@@ -9,12 +9,19 @@
 		<link rel="stylesheet" href="%sveltekit.assets%/styles/main.css" />
 		%sveltekit.head%
 
-		<script type="module">
-			const theme = localStorage.getItem('color-theme')
+		<!-- setting up color theme on init -->
+		<script>
+			(function () {
+				try {
+					const theme = localStorage.getItem('color-scheme') || 'light';
+		
+					document.documentElement.setAttribute('color-scheme', theme);
+					localStorage.setItem('color-scheme', theme);
 
-			theme
-				? document.documentElement.setAttribute('color-theme', theme)
-				: localStorage.setItem('color-theme', 'light')
+				} catch (e) {
+					console.error("LocalStorage access error:", e);
+				}
+			})();
 		</script>
 	
 	</head>
