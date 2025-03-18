@@ -28,6 +28,10 @@
 - testing
     - yarn global add serve
 
+    - Remove-Item -Path .\build -Recurse -Force
+    - get in build directory
+    - yarn preview 
+
 - creation
     - npx sv create <app-name>
     - npx sv create immersion
@@ -56,6 +60,7 @@
         - which package manager do you want to install dependencies with?
             - npm
     - yarn add @types/three --dev
+    - yarn add vite-plugin-glsl
 
 # Links
 - svelte tutorialsf

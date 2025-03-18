@@ -39,8 +39,8 @@
 - check todo
 - check commitments
 - update version and date
-- update timelog
 - deployment test
+- update timelog
 - push
 
 # Log 
@@ -48,7 +48,19 @@
     - todo set routes to base for deployment
     - add markdown rendering with footnotes and toc
     - add json render
-    - add glsl import
+
+- [0.22.0] added drawing vectors with cone tips
+    - 18-Mar-2025
+        - added display
+        - added, drawing vectors with cone tips
+
+- [0.21.0] add separte glsl shader; x, z axis on grid; fix color
+    - 18-Mar-2025
+        - (13.44-14.14 20m) preview testing
+        - (12.46-13.44 1h) fix color mode bug -> onmount assignment
+    - 17-Mar-2025
+        - added x, y(z) axis on grid
+        - .glsl shader file separation
 
 - [0.20.1] build chunk size increase, deployment test
     - 23-Jan-2025

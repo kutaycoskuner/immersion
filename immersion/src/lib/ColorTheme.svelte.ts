@@ -2,7 +2,7 @@ import { writable } from 'svelte/store';
 import { browser } from '$app/environment';
 
 class Theme {
-	private _theme = writable(browser && localStorage.getItem('color-scheme') || 'dark');
+	private _theme = writable(browser && localStorage.getItem('color-scheme') || 'light');
 
 	get current() {
 		let value;
@@ -16,6 +16,7 @@ class Theme {
 
 	toggle = () => {
 		const theme = this.current === 'dark' ? 'light' : 'dark';
+		// console.log(theme, localStorage.getItem('color-scheme'))
 		document.documentElement.setAttribute('color-scheme', theme);
 		if (browser) localStorage.setItem('color-scheme', theme);
 		this._theme.set(theme); // Update the store
