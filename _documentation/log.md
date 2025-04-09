@@ -49,6 +49,15 @@
     - add markdown rendering with footnotes and toc
     - add json render
 
+- [0.23.0] binded ui lib; added vector controls
+    - 09-Apr-2025
+        - added display
+        - added second vector connections
+        - disabled background on constrasts as prevents black and white vector visibility
+    - 05-Apr-2025
+        - wip binding vector controls to ui
+        - added ui lib tweakpane
+
 - [0.22.0] added drawing vectors with cone tips
     - 18-Mar-2025
         - added display

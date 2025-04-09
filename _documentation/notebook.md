@@ -61,6 +61,8 @@
             - npm
     - yarn add @types/three --dev
     - yarn add vite-plugin-glsl
+    - yarn add tweakpane
+    - tweakpane @tweakpane/core | necessary for ts
 
 # Links
 - svelte tutorialsf
