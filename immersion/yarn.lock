@@ -2019,6 +2019,11 @@ svelte@^5.0.0:
     magic-string "^0.30.11"
     zimmerframe "^1.1.2"
 
+three-viewport-gizmo@^2.2.0:
+  version "2.2.0"
+  resolved "https://registry.yarnpkg.com/three-viewport-gizmo/-/three-viewport-gizmo-2.2.0.tgz#0fa83d25a156040cd6225ce1124828c03c118bfe"
+  integrity sha512-Jo9Liur1rUmdKk75FZumLU/+hbF+RtJHi1qsKZpntjKlCYScK6tjbYoqvJ9M+IJphrlQJF5oReFW7Sambh0N4Q==
+
 three@^0.172.0:
   version "0.172.0"
   resolved "https://registry.yarnpkg.com/three/-/three-0.172.0.tgz#6944a72f8439e8f7e4b034c8539ec82f5ebe0082"

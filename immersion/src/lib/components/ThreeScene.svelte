@@ -4,6 +4,8 @@
 	import { Pane } from 'tweakpane';
 	import { fadingGridLines, fadingXAxis, fadingYAxis } from '$lib/shaders/FadingGridLines.ts';
 	// import { infiniteAxes } from '$lib/shaders/InfiniteAxes.ts';
+	import { ViewportGizmo } from 'three-viewport-gizmo';
+	import { ViewportGizmoOptions } from '$lib/config/config-navigation_gizmo.ts';
 	import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 	import { modelStore } from '../../store/model_store';
 	import { theme } from '$lib/ColorTheme.svelte';
@@ -29,6 +31,9 @@
 
 	let threeVectorTip1: THREE.Mesh;
 	let threeVectorTip2: THREE.Mesh;
+
+	let threeVectorText1: THREE.Sprite;
+	let threeVectorText2: THREE.Sprite;
 
 	let currentTheme: string;
 	theme.themeStore.subscribe((value) => {
@@ -69,31 +74,42 @@
 	});
 
 	function updateVector(x: number, y: number, z: number, vectorIndex: number) {
+		if (typeof window === 'undefined') return;
+		if (typeof document === 'undefined') return;
 		if (vectorIndex == 1) {
 			if (threeVector1 && scene) {
 				scene.remove(threeVector1);
 				scene.remove(threeVectorTip1);
+				scene.remove(threeVectorText1);
 			}
 			threeVector1 = drawVector(x, y, z, vectorScale);
 			threeVectorTip1 = drawTipOfVector(threeVector1);
+			threeVectorText1 = addVectorLabelAtTip(threeVectorTip1.position);
 			if (scene) {
 				scene.add(threeVector1);
 				scene.add(threeVectorTip1);
+				if (threeVectorTip1.position.length() > 0) scene.add(threeVectorText1);
 			}
 		} else if (vectorIndex == 2) {
 			if (threeVector2 && scene) {
 				scene.remove(threeVector2);
 				scene.remove(threeVectorTip2);
+				scene.remove(threeVectorText2);
+
 			}
 			threeVector2 = drawVector(x, y, z, vectorScale);
 			threeVectorTip2 = drawTipOfVector(threeVector2);
+			threeVectorText2 = addVectorLabelAtTip(threeVectorTip2.position);
+
 			if (scene) {
 				scene.add(threeVector2);
 				scene.add(threeVectorTip2);
+				if (threeVectorTip2.position.length() > 0) scene.add(threeVectorText2);
+
 			}
 		}
 	}
-	
+
 	function updateSceneBackground(backgroundColor: string = '#ffffff') {
 		if (backgroundColor == '#ffffff') {
 			backgroundColor = adaptCSSColor(getCSSVariable('--bg'));
@@ -157,6 +173,48 @@
 		else line.position.x = offset;
 
 		return line;
+	}
+
+	function createTextSprite(message: string, color = 'white', fontSize = 48): THREE.Sprite {
+		const canvas = document.createElement('canvas');
+		const context = canvas.getContext('2d')!;
+		canvas.width = 512;
+		canvas.height = 256;
+
+		context.font = `${fontSize}px Arial`;
+		context.fillStyle = color;
+		context.textAlign = 'center';
+		context.fillText(message, canvas.width / 2, canvas.height / 2 + fontSize / 2);
+
+		const texture = new THREE.CanvasTexture(canvas);
+		const material = new THREE.SpriteMaterial({ map: texture, transparent: true });
+		const sprite = new THREE.Sprite(material);
+		sprite.scale.set(2, 1, 1); // Adjust based on font size and canvas ratio
+		return sprite;
+	}
+
+	function addVectorLabelAtTip(
+		tipPosition: THREE.Vector3,
+		// scene: THREE.Scene,
+		offsetScalar = 0.6
+	): THREE.Sprite {
+		// Format the coordinates as a string
+		const text = `(${tipPosition.x.toFixed(2)}, ${tipPosition.y.toFixed(2)}, ${tipPosition.z.toFixed(2)})`;
+
+		// Create the text sprite with the formatted coordinates
+		const textSprite = createTextSprite(text, 'white', 64); // You can adjust color and size as needed
+
+		// Calculate direction and offset
+		const direction = tipPosition.clone().normalize();
+		const offset = direction.multiplyScalar(offsetScalar);
+
+		// Set the position of the text sprite
+		textSprite.position.copy(tipPosition.clone().add(offset));
+
+		// Add the sprite to the scene
+		// scene.add(textSprite);
+
+		return textSprite;
 	}
 
 	function drawVector(x: number, y: number, z: number, scale: number = 1): THREE.Line {
@@ -251,7 +309,11 @@
 		const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
 		renderer.setSize(window.innerWidth, window.innerHeight);
 
+		// viewport gizmo or navigation gizmo
 		const controls = new OrbitControls(camera, renderer.domElement);
+		const gizmo = new ViewportGizmo(camera, renderer, ViewportGizmoOptions);
+		gizmo.attachControls(controls);
+
 		// camera.position.set(-7.3, 5, 6.9);
 		camera.position.set(0.0, 4.0, 16.0);
 		// camera.up.set(0, 0, 1);
@@ -267,6 +329,7 @@
 
 		// Add scene nodes
 		// -------------------------------------------------------------------------------
+
 		for (let i = -10; i < 10; i++) {
 			if (i != 0) {
 				scene.add(getSimpleLine(10, i, 'x', fadingGridLines));
@@ -285,40 +348,15 @@
 		scene.add(threeVector1);
 		threeVectorTip1 = drawTipOfVector(threeVector1);
 		scene.add(threeVectorTip1);
+		threeVectorText1 = addVectorLabelAtTip(threeVectorTip1.position);
+		if (threeVectorTip1.position.length() > 0) scene.add(threeVectorText1);
 
 		scene.add(threeVector2);
 		threeVectorTip2 = drawTipOfVector(threeVector2);
 		scene.add(threeVectorTip2);
-		// if (!model) {
-		// 	for (let i = 0; i < numVectors; i++) {
-		// 		for (let j = 0; j < numVectors; j++) {
-		// 			for (let k = 0; k < numVectors; k++) {
-		// 				// Calculate the angle for each vector
-		// 				const angleX = i * angleIncrement;
-		// 				const angleY = j * angleIncrement;
-		// 				const angleZ = k * angleIncrement;
+		threeVectorText2 = addVectorLabelAtTip(threeVectorTip2.position);
+		if (threeVectorTip2.position.length() > 0) scene.add(threeVectorText2);
 
-		// 				// Convert angles to radians
-		// 				const radX = THREE.MathUtils.degToRad(angleX);
-		// 				const radY = THREE.MathUtils.degToRad(angleY);
-		// 				const radZ = THREE.MathUtils.degToRad(angleZ);
-
-		// 				// Calculate vector components (you can adjust these calculations as needed)
-		// 				const x = length * Math.cos(radX) * Math.cos(radY);
-		// 				const y = length * Math.sin(radX) * Math.cos(radY);
-		// 				const z = length * Math.sin(radY);
-
-		// 				// Draw the vector
-		// 				const vector_line = drawVector(x, y, z, 20);
-		// 				scene.add(vector_line);
-
-		// 				// Draw the tip of the vector
-		// 				const vector_tip = drawTipOfVector(vector_line);
-		// 				scene.add(vector_tip);
-		// 			}
-		// 		}
-		// 	}
-		// }
 
 		// Add ambient and directional lights for better visibility of models
 		const ambientLight = new THREE.AmbientLight(0xffffff, 0.3); // Adjust intensity as needed
@@ -407,10 +445,20 @@
 		// Animation loop
 		function animate() {
 			requestAnimationFrame(animate);
-			updateCamera(); // Update camera movement
+
 			renderer.render(scene, camera);
+			controls.update();
+			gizmo.render();
+
+			updateCamera(); // Update camera movement
 		}
 		animate();
+
+		window.onresize = () => {
+			//... Scene's resize logic
+
+			gizmo.update();
+		};
 
 		// Clean up on unmount
 		return () => {

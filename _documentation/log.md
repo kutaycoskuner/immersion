@@ -49,6 +49,11 @@
     - add markdown rendering with footnotes and toc
     - add json render
 
+- [0.24.0] added gizmo, vector labels
+    - 09-May-2025
+        - added vector labels
+        - added navigation gizmo library
+
 - [0.23.0] binded ui lib; added vector controls
     - 09-Apr-2025
         - added display

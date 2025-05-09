@@ -63,6 +63,7 @@
     - yarn add vite-plugin-glsl
     - yarn add tweakpane
     - tweakpane @tweakpane/core | necessary for ts
+    - yarn add three-viewport-gizmo
 
 # Links
 - svelte tutorialsf
@@ -70,6 +71,12 @@
 
 - svelte kit first project link
     - https://svelte.dev/docs/kit
+
+- naavigation gizmo
+    - https://docs.blender.org/manual/en/latest/editors/3dview/navigate/introduction.html
+
+- three viewport gizmo
+    - https://fennec-hub.github.io/three-viewport-gizmo/
 
 - deployment
     - https://www.okupter.com/blog/deploy-sveltekit-website-to-github-pages
