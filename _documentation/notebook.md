@@ -26,10 +26,11 @@
     - yarn remove gh-pages
 
 - testing
-    - yarn global add serve
+    - yarn global add serve (install testing)
 
     - Remove-Item -Path .\build -Recurse -Force
-    - get in build directory
+    - yarn build
+    - cd build
     - yarn preview 
 
 - creation

@@ -49,6 +49,16 @@
     - add markdown rendering with footnotes and toc
     - add json render
 
+- [0.24.1] added ground plane projection reference
+    - 19-May-2025
+        - changed theme to fixed light on app
+        - added icons component
+        - isolated svg text code
+        - added dotted reference to ground lines on vectors
+        - removed dark/light mode toggle on main
+    - 12-May-2025
+        - removed links on navigation
+
 - [0.24.0] added gizmo, vector labels
     - 09-May-2025
         - added vector labels

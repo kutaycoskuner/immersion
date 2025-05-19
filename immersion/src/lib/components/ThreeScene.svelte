@@ -24,16 +24,16 @@
 	export const STOREVECTOR2 = writable({ x: 0, y: 0, z: 0 });
 
 	let paneVector1 = { x: 1, y: 1, z: 1 };
-	let paneVector2 = { x: 0, y: 0, z: 0 };
-
 	let threeVector1: THREE.Line = drawVector(1, 1, 1, vectorScale);
-	let threeVector2: THREE.Line = drawVector(0, 0, 0, vectorScale);
-
 	let threeVectorTip1: THREE.Mesh;
-	let threeVectorTip2: THREE.Mesh;
-
 	let threeVectorText1: THREE.Sprite;
+	let threeVectorUpRef1: THREE.Line;
+
+	let paneVector2 = { x: 0, y: 0, z: 0 };
+	let threeVector2: THREE.Line = drawVector(0, 0, 0, vectorScale);
+	let threeVectorTip2: THREE.Mesh;
 	let threeVectorText2: THREE.Sprite;
+	let threeVectorUpRef2: THREE.Line;
 
 	let currentTheme: string;
 	theme.themeStore.subscribe((value) => {
@@ -80,34 +80,61 @@
 			if (threeVector1 && scene) {
 				scene.remove(threeVector1);
 				scene.remove(threeVectorTip1);
+				scene.remove(threeVectorUpRef1);
 				scene.remove(threeVectorText1);
 			}
 			threeVector1 = drawVector(x, y, z, vectorScale);
 			threeVectorTip1 = drawTipOfVector(threeVector1);
+			threeVectorUpRef1 = drawReferenceLineToGroundPlane(threeVectorTip1.position);
 			threeVectorText1 = addVectorLabelAtTip(threeVectorTip1.position);
 			if (scene) {
 				scene.add(threeVector1);
 				scene.add(threeVectorTip1);
+				scene.add(threeVectorUpRef1);
 				if (threeVectorTip1.position.length() > 0) scene.add(threeVectorText1);
 			}
 		} else if (vectorIndex == 2) {
 			if (threeVector2 && scene) {
 				scene.remove(threeVector2);
 				scene.remove(threeVectorTip2);
+				scene.remove(threeVectorUpRef2);
 				scene.remove(threeVectorText2);
-
 			}
 			threeVector2 = drawVector(x, y, z, vectorScale);
 			threeVectorTip2 = drawTipOfVector(threeVector2);
+			threeVectorUpRef2 = drawReferenceLineToGroundPlane(threeVectorTip2.position);
 			threeVectorText2 = addVectorLabelAtTip(threeVectorTip2.position);
 
 			if (scene) {
 				scene.add(threeVector2);
 				scene.add(threeVectorTip2);
+				scene.add(threeVectorUpRef2);
 				if (threeVectorTip2.position.length() > 0) scene.add(threeVectorText2);
-
 			}
 		}
+	}
+
+	function drawReferenceLineToGroundPlane(tipPosition: THREE.Vector3): THREE.Line {
+		// Create points for the reference line (from tip to y=0 plane)
+		const start = tipPosition.clone();
+		const end = new THREE.Vector3(tipPosition.x, 0, tipPosition.z); // Project to y=0 plane
+
+		// Create geometry
+		const geometry = new THREE.BufferGeometry().setFromPoints([start, end]);
+
+		// Create material (dashed line for better visual distinction)
+		const material = new THREE.LineDashedMaterial({
+			color: 0x444444, // Gray color
+			dashSize: 0.1,
+			gapSize: 0.05,
+			linewidth: 1
+		});
+
+		// Create the line
+		const line = new THREE.Line(geometry, material);
+		line.computeLineDistances(); // Required for dashed lines
+
+		return line;
 	}
 
 	function updateSceneBackground(backgroundColor: string = '#ffffff') {
@@ -199,7 +226,10 @@
 		offsetScalar = 0.6
 	): THREE.Sprite {
 		// Format the coordinates as a string
-		const text = `(${tipPosition.x.toFixed(2)}, ${tipPosition.y.toFixed(2)}, ${tipPosition.z.toFixed(2)})`;
+		const posx = tipPosition.x / vectorScale;
+		const posy = tipPosition.y / vectorScale;
+		const posz = tipPosition.z / vectorScale;
+		const text = `(${posx.toFixed(2)}, ${posy.toFixed(2)}, ${posz.toFixed(2)})`;
 
 		// Create the text sprite with the formatted coordinates
 		const textSprite = createTextSprite(text, 'white', 64); // You can adjust color and size as needed
@@ -345,18 +375,29 @@
 		const angleIncrement = 45; // Angle increment between vectors in degrees
 		const numVectors = 360 / angleIncrement; // Number of vectors (360 degrees / angleinc)
 
+		// 				vector 1
 		scene.add(threeVector1);
+
 		threeVectorTip1 = drawTipOfVector(threeVector1);
 		scene.add(threeVectorTip1);
+
+		threeVectorUpRef1 = drawReferenceLineToGroundPlane(threeVectorTip1.position);
+		scene.add(threeVectorUpRef1);
+
 		threeVectorText1 = addVectorLabelAtTip(threeVectorTip1.position);
 		if (threeVectorTip1.position.length() > 0) scene.add(threeVectorText1);
 
+		// 				vector 2
 		scene.add(threeVector2);
+
 		threeVectorTip2 = drawTipOfVector(threeVector2);
 		scene.add(threeVectorTip2);
+
+		threeVectorUpRef2 = drawReferenceLineToGroundPlane(threeVectorTip2.position);
+		scene.add(threeVectorUpRef2);
+
 		threeVectorText2 = addVectorLabelAtTip(threeVectorTip2.position);
 		if (threeVectorTip2.position.length() > 0) scene.add(threeVectorText2);
-
 
 		// Add ambient and directional lights for better visibility of models
 		const ambientLight = new THREE.AmbientLight(0xffffff, 0.3); // Adjust intensity as needed
@@ -404,6 +445,12 @@
 			.addBinding(paneVector2, 'z', { min: -1, max: 1, label: 'Vec 2 Z' })
 			.on('change', () => {
 				STOREVECTOR2.set({ ...paneVector2 });
+			});
+
+		const btn = tab.pages[0]
+			.addButton({
+				title: 'Animate Scaler Product',
+				// label: 'counter' // optional
 			});
 
 		// add controls
