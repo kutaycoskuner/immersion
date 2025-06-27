@@ -49,6 +49,39 @@
     - add markdown rendering with footnotes and toc
     - add json render
 
+- [0.26.1] added dot product steps
+    - 20250627
+        - adding dot product definition steps
+
+- [0.25.0] added mathjax cdn
+    - 20250627
+        - added mathjax and dot product calculation components
+        - added matjax as cdn
+
+- [0.24.1] added ground plane projection reference
+    - 19-May-2025
+        - changed theme to fixed light on app
+        - added icons component
+        - isolated svg text code
+        - added dotted reference to ground lines on vectors
+        - removed dark/light mode toggle on main
+    - 12-May-2025
+        - removed links on navigation
+
+- [0.24.0] added gizmo, vector labels
+    - 09-May-2025
+        - added vector labels
+        - added navigation gizmo library
+
+- [0.23.0] binded ui lib; added vector controls
+    - 09-Apr-2025
+        - added display
+        - added second vector connections
+        - disabled background on constrasts as prevents black and white vector visibility
+    - 05-Apr-2025
+        - wip binding vector controls to ui
+        - added ui lib tweakpane
+
 - [0.22.0] added drawing vectors with cone tips
     - 18-Mar-2025
         - added display

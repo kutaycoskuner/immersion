@@ -1,12 +1,16 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import * as THREE from 'three';
+	import { Pane } from 'tweakpane';
 	import { fadingGridLines, fadingXAxis, fadingYAxis } from '$lib/shaders/FadingGridLines.ts';
 	// import { infiniteAxes } from '$lib/shaders/InfiniteAxes.ts';
+	import { ViewportGizmo } from 'three-viewport-gizmo';
+	import { ViewportGizmoOptions } from '$lib/config/config-navigation_gizmo.ts';
 	import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 	import { modelStore } from '../../store/model_store';
 	import { theme } from '$lib/ColorTheme.svelte';
 	import { writable } from 'svelte/store';
+	import { STOREVECTOR1, STOREVECTOR2 } from '$lib/stores/vectors';
 
 	let canvas: HTMLCanvasElement;
 	let scene: THREE.Scene;
@@ -14,6 +18,23 @@
 	let renderer: THREE.WebGLRenderer;
 	let keyStates: { [key: string]: boolean } = {};
 	let model: THREE.Object3D | null = null;
+
+	let pane: Pane;
+	let vectorScale = 5;
+	// export const STOREVECTOR1 = writable({ x: 1, y: 1, z: 1 });
+	// export const STOREVECTOR2 = writable({ x: 0, y: 0, z: 0 });
+
+	let paneVector1 = { x: 1, y: 0, z: 0 };
+	let threeVector1: THREE.Line = drawVector(1, 1, 1, vectorScale);
+	let threeVectorTip1: THREE.Mesh;
+	let threeVectorText1: THREE.Sprite;
+	let threeVectorUpRef1: THREE.Line;
+
+	let paneVector2 = { x: 1, y: 1, z: 0 };
+	let threeVector2: THREE.Line = drawVector(0, 0, 0, vectorScale);
+	let threeVectorTip2: THREE.Mesh;
+	let threeVectorText2: THREE.Sprite;
+	let threeVectorUpRef2: THREE.Line;
 
 	let currentTheme: string;
 	theme.themeStore.subscribe((value) => {
@@ -23,8 +44,14 @@
 	// Reactive statement to call the function whenever `currentTheme` changes
 	$: currentTheme && updateSceneBackground();
 
+	$: STOREVECTOR1.subscribe((vector) => {
+		updateVector(vector.x, vector.y, vector.z, 1);
+	});
+	$: STOREVECTOR2.subscribe((vector) => {
+		updateVector(vector.x, vector.y, vector.z, 2);
+	});
+
 	modelStore.subscribe((value) => {
-		// console.log('uploaded new model');
 		if (model) {
 			scene.remove(model); // Remove the previous model if it exists
 		}
@@ -47,12 +74,77 @@
 		}
 	});
 
+	function updateVector(x: number, y: number, z: number, vectorIndex: number) {
+		if (typeof window === 'undefined') return;
+		if (typeof document === 'undefined') return;
+		if (vectorIndex == 1) {
+			if (threeVector1 && scene) {
+				scene.remove(threeVector1);
+				scene.remove(threeVectorTip1);
+				scene.remove(threeVectorUpRef1);
+				scene.remove(threeVectorText1);
+			}
+			threeVector1 = drawVector(x, y, z, vectorScale);
+			threeVectorTip1 = drawTipOfVector(threeVector1);
+			threeVectorUpRef1 = drawReferenceLineToGroundPlane(threeVectorTip1.position);
+			threeVectorText1 = addVectorLabelAtTip(threeVectorTip1.position);
+			if (scene) {
+				scene.add(threeVector1);
+				scene.add(threeVectorTip1);
+				scene.add(threeVectorUpRef1);
+				if (threeVectorTip1.position.length() > 0) scene.add(threeVectorText1);
+			}
+		} else if (vectorIndex == 2) {
+			if (threeVector2 && scene) {
+				scene.remove(threeVector2);
+				scene.remove(threeVectorTip2);
+				scene.remove(threeVectorUpRef2);
+				scene.remove(threeVectorText2);
+			}
+			threeVector2 = drawVector(x, y, z, vectorScale);
+			threeVectorTip2 = drawTipOfVector(threeVector2);
+			threeVectorUpRef2 = drawReferenceLineToGroundPlane(threeVectorTip2.position);
+			threeVectorText2 = addVectorLabelAtTip(threeVectorTip2.position);
+
+			if (scene) {
+				scene.add(threeVector2);
+				scene.add(threeVectorTip2);
+				scene.add(threeVectorUpRef2);
+				if (threeVectorTip2.position.length() > 0) scene.add(threeVectorText2);
+			}
+		}
+	}
+
+	function drawReferenceLineToGroundPlane(tipPosition: THREE.Vector3): THREE.Line {
+		// Create points for the reference line (from tip to y=0 plane)
+		const start = tipPosition.clone();
+		const end = new THREE.Vector3(tipPosition.x, 0, tipPosition.z); // Project to y=0 plane
+
+		// Create geometry
+		const geometry = new THREE.BufferGeometry().setFromPoints([start, end]);
+
+		// Create material (dashed line for better visual distinction)
+		const material = new THREE.LineDashedMaterial({
+			color: 0x444444, // Gray color
+			dashSize: 0.1,
+			gapSize: 0.05,
+			linewidth: 1
+		});
+
+		// Create the line
+		const line = new THREE.Line(geometry, material);
+		line.computeLineDistances(); // Required for dashed lines
+
+		return line;
+	}
+
 	function updateSceneBackground(backgroundColor: string = '#ffffff') {
 		if (backgroundColor == '#ffffff') {
 			backgroundColor = adaptCSSColor(getCSSVariable('--bg'));
 		}
 		if (!scene) return;
-		scene.background = new THREE.Color(backgroundColor);
+		// scene.background = new THREE.Color(backgroundColor);
+		scene.background = new THREE.Color('#363636');
 		updateGridColor(currentTheme);
 	}
 
@@ -109,6 +201,51 @@
 		else line.position.x = offset;
 
 		return line;
+	}
+
+	function createTextSprite(message: string, color = 'white', fontSize = 48): THREE.Sprite {
+		const canvas = document.createElement('canvas');
+		const context = canvas.getContext('2d')!;
+		canvas.width = 512;
+		canvas.height = 256;
+
+		context.font = `${fontSize}px Arial`;
+		context.fillStyle = color;
+		context.textAlign = 'center';
+		context.fillText(message, canvas.width / 2, canvas.height / 2 + fontSize / 2);
+
+		const texture = new THREE.CanvasTexture(canvas);
+		const material = new THREE.SpriteMaterial({ map: texture, transparent: true });
+		const sprite = new THREE.Sprite(material);
+		sprite.scale.set(2, 1, 1); // Adjust based on font size and canvas ratio
+		return sprite;
+	}
+
+	function addVectorLabelAtTip(
+		tipPosition: THREE.Vector3,
+		// scene: THREE.Scene,
+		offsetScalar = 0.6
+	): THREE.Sprite {
+		// Format the coordinates as a string
+		const posx = tipPosition.x / vectorScale;
+		const posy = tipPosition.y / vectorScale;
+		const posz = tipPosition.z / vectorScale;
+		const text = `(${posx.toFixed(2)}, ${posy.toFixed(2)}, ${posz.toFixed(2)})`;
+
+		// Create the text sprite with the formatted coordinates
+		const textSprite = createTextSprite(text, 'white', 64); // You can adjust color and size as needed
+
+		// Calculate direction and offset
+		const direction = tipPosition.clone().normalize();
+		const offset = direction.multiplyScalar(offsetScalar);
+
+		// Set the position of the text sprite
+		textSprite.position.copy(tipPosition.clone().add(offset));
+
+		// Add the sprite to the scene
+		// scene.add(textSprite);
+
+		return textSprite;
 	}
 
 	function drawVector(x: number, y: number, z: number, scale: number = 1): THREE.Line {
@@ -203,10 +340,15 @@
 		const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
 		renderer.setSize(window.innerWidth, window.innerHeight);
 
+		// viewport gizmo or navigation gizmo
 		const controls = new OrbitControls(camera, renderer.domElement);
+		const gizmo = new ViewportGizmo(camera, renderer, ViewportGizmoOptions);
+		gizmo.attachControls(controls);
+
 		// camera.position.set(-7.3, 5, 6.9);
 		camera.position.set(0.0, 4.0, 16.0);
-		camera.lookAt(0, 2, 0);
+		// camera.up.set(0, 0, 1);
+		camera.lookAt(0, 0, 0);
 
 		// Handle window resize
 		const resize = () => {
@@ -218,6 +360,7 @@
 
 		// Add scene nodes
 		// -------------------------------------------------------------------------------
+
 		for (let i = -10; i < 10; i++) {
 			if (i != 0) {
 				scene.add(getSimpleLine(10, i, 'x', fadingGridLines));
@@ -233,37 +376,30 @@
 		const angleIncrement = 45; // Angle increment between vectors in degrees
 		const numVectors = 360 / angleIncrement; // Number of vectors (360 degrees / angleinc)
 
-		if (!model) {
-			for (let i = 0; i < numVectors; i++) {
-				for (let j = 0; j < numVectors; j++) {
-					for (let k = 0; k < numVectors; k++) {
-						// Calculate the angle for each vector
-						const angleX = i * angleIncrement;
-						const angleY = j * angleIncrement;
-						const angleZ = k * angleIncrement;
+		// 				vector 1
+		scene.add(threeVector1);
 
-						// Convert angles to radians
-						const radX = THREE.MathUtils.degToRad(angleX);
-						const radY = THREE.MathUtils.degToRad(angleY);
-						const radZ = THREE.MathUtils.degToRad(angleZ);
+		threeVectorTip1 = drawTipOfVector(threeVector1);
+		scene.add(threeVectorTip1);
 
-						// Calculate vector components (you can adjust these calculations as needed)
-						const x = length * Math.cos(radX) * Math.cos(radY);
-						const y = length * Math.sin(radX) * Math.cos(radY);
-						const z = length * Math.sin(radY);
+		threeVectorUpRef1 = drawReferenceLineToGroundPlane(threeVectorTip1.position);
+		scene.add(threeVectorUpRef1);
 
-						// Draw the vector
-						const vector_line = drawVector(x, y, z, 20);
-						scene.add(vector_line);
+		threeVectorText1 = addVectorLabelAtTip(threeVectorTip1.position);
+		if (threeVectorTip1.position.length() > 0) scene.add(threeVectorText1);
 
-						// Draw the tip of the vector
-						const vector_tip = drawTipOfVector(vector_line);
-						scene.add(vector_tip);
-					}
-				}
-			}
-		}
-		
+		// 				vector 2
+		scene.add(threeVector2);
+
+		threeVectorTip2 = drawTipOfVector(threeVector2);
+		scene.add(threeVectorTip2);
+
+		threeVectorUpRef2 = drawReferenceLineToGroundPlane(threeVectorTip2.position);
+		scene.add(threeVectorUpRef2);
+
+		threeVectorText2 = addVectorLabelAtTip(threeVectorTip2.position);
+		if (threeVectorTip2.position.length() > 0) scene.add(threeVectorText2);
+
 		// Add ambient and directional lights for better visibility of models
 		const ambientLight = new THREE.AmbientLight(0xffffff, 0.3); // Adjust intensity as needed
 		scene.add(ambientLight);
@@ -271,6 +407,52 @@
 		const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
 		directionalLight.position.set(10, 10, 10);
 		scene.add(directionalLight);
+
+		// add ui
+		// -------------------------------------------------------------------------------
+		pane = new Pane({ title: 'Controls' });
+		const tab = pane.addTab({
+			pages: [{ title: 'Scalar Product' }, { title: 'Vector Product' }]
+		});
+		// Vector 1 bindings with custom labels
+		tab.pages[0]
+			.addBinding(paneVector1, 'x', { min: -1, max: 1, label: 'Vec 1 X' })
+			.on('change', () => {
+				STOREVECTOR1.set({ ...paneVector1 });
+			});
+		tab.pages[0]
+			.addBinding(paneVector1, 'y', { min: -1, max: 1, label: 'Vec 1 Y' })
+			.on('change', () => {
+				STOREVECTOR1.set({ ...paneVector1 });
+			});
+		tab.pages[0]
+			.addBinding(paneVector1, 'z', { min: -1, max: 1, label: 'Vec 1 Z' })
+			.on('change', () => {
+				STOREVECTOR1.set({ ...paneVector1 });
+			});
+
+		// Vector 2 bindings with custom labels
+		tab.pages[0]
+			.addBinding(paneVector2, 'x', { min: -1, max: 1, label: 'Vec 2 X' })
+			.on('change', () => {
+				STOREVECTOR2.set({ ...paneVector2 });
+			});
+		tab.pages[0]
+			.addBinding(paneVector2, 'y', { min: -1, max: 1, label: 'Vec 2 Y' })
+			.on('change', () => {
+				STOREVECTOR2.set({ ...paneVector2 });
+			});
+		tab.pages[0]
+			.addBinding(paneVector2, 'z', { min: -1, max: 1, label: 'Vec 2 Z' })
+			.on('change', () => {
+				STOREVECTOR2.set({ ...paneVector2 });
+			});
+
+		const btn = tab.pages[0]
+			.addButton({
+				title: 'Animate Scaler Product',
+				// label: 'counter' // optional
+			});
 
 		// add controls
 		// -------------------------------------------------------------------------------
@@ -311,10 +493,20 @@
 		// Animation loop
 		function animate() {
 			requestAnimationFrame(animate);
-			updateCamera(); // Update camera movement
+
 			renderer.render(scene, camera);
+			controls.update();
+			gizmo.render();
+
+			updateCamera(); // Update camera movement
 		}
 		animate();
+
+		window.onresize = () => {
+			//... Scene's resize logic
+
+			gizmo.update();
+		};
 
 		// Clean up on unmount
 		return () => {
