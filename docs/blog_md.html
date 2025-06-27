@@ -4,36 +4,41 @@
 		<meta charset="utf-8" />
 		<!-- <link rel="icon" href="./favicon.png" /> -->
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
-		<link rel="icon" type="image/x-icon" href="./favicons/favicon_default_32.ico">
+		<link
+			rel="icon"
+			type="image/x-icon"
+			href="./favicons/favicon_default_32.ico"
+		/>
 		<link rel="stylesheet" href="./styles/settings_overlay.css" />
 		<link rel="stylesheet" href="./styles/main.css" />
 		<link rel="stylesheet" href="./styles/tweakpane_ui.css" />
 		
 		<link href="./_app/immutable/assets/0.eU-3lSNn.css" rel="stylesheet">
 		<link href="./_app/immutable/assets/9.u7kvYJEV.css" rel="stylesheet">
-		<link rel="modulepreload" href="./_app/immutable/entry/start.CPjR2KCx.js">
-		<link rel="modulepreload" href="./_app/immutable/chunks/entry.CGhxe0Uv.js">
-		<link rel="modulepreload" href="./_app/immutable/chunks/runtime.DLoxvj-H.js">
-		<link rel="modulepreload" href="./_app/immutable/chunks/index.Rvyr-gqv.js">
-		<link rel="modulepreload" href="./_app/immutable/chunks/paths.BsRp59ep.js">
+		<link rel="modulepreload" href="./_app/immutable/entry/start.DlpqXSO8.js">
+		<link rel="modulepreload" href="./_app/immutable/chunks/entry.D1bYGSZx.js">
+		<link rel="modulepreload" href="./_app/immutable/chunks/runtime.C1Iw8YyZ.js">
+		<link rel="modulepreload" href="./_app/immutable/chunks/index.CYGmGCMY.js">
+		<link rel="modulepreload" href="./_app/immutable/chunks/paths.DgoMYGvn.js">
 		<link rel="modulepreload" href="./_app/immutable/chunks/control.CYgJF_JY.js">
-		<link rel="modulepreload" href="./_app/immutable/chunks/index-client.rg45zxF-.js">
-		<link rel="modulepreload" href="./_app/immutable/entry/app.hoAH-gQV.js">
-		<link rel="modulepreload" href="./_app/immutable/chunks/preload-helper.Buh3rFDH.js">
-		<link rel="modulepreload" href="./_app/immutable/chunks/render.poBFCIAy.js">
-		<link rel="modulepreload" href="./_app/immutable/chunks/events.Btn_lewz.js">
-		<link rel="modulepreload" href="./_app/immutable/chunks/disclose-version.Dr_Zvb8f.js">
-		<link rel="modulepreload" href="./_app/immutable/chunks/if.Ci0ejzUs.js">
-		<link rel="modulepreload" href="./_app/immutable/chunks/this.DqyXyMkq.js">
-		<link rel="modulepreload" href="./_app/immutable/nodes/0.B2Iwi0gf.js">
-		<link rel="modulepreload" href="./_app/immutable/chunks/snippet.odhHAN0X.js">
-		<link rel="modulepreload" href="./_app/immutable/chunks/legacy.C6pbGOcE.js">
-		<link rel="modulepreload" href="./_app/immutable/chunks/attributes.COFGJQkY.js">
-		<link rel="modulepreload" href="./_app/immutable/chunks/lifecycle.CGvZFj6E.js">
+		<link rel="modulepreload" href="./_app/immutable/chunks/index-client.BG7toYih.js">
+		<link rel="modulepreload" href="./_app/immutable/entry/app.q-oqWxYd.js">
+		<link rel="modulepreload" href="./_app/immutable/chunks/preload-helper.Dua-qVJU.js">
+		<link rel="modulepreload" href="./_app/immutable/chunks/render.DzRlH2b1.js">
+		<link rel="modulepreload" href="./_app/immutable/chunks/events.DZuCOq1L.js">
+		<link rel="modulepreload" href="./_app/immutable/chunks/disclose-version.BgHkrR88.js">
+		<link rel="modulepreload" href="./_app/immutable/chunks/if.DG2DrauP.js">
+		<link rel="modulepreload" href="./_app/immutable/chunks/props.BOnENDNr.js">
+		<link rel="modulepreload" href="./_app/immutable/chunks/this.Bht33msH.js">
+		<link rel="modulepreload" href="./_app/immutable/nodes/0.tdG2Pq13.js">
+		<link rel="modulepreload" href="./_app/immutable/chunks/snippet.G_8hIaxV.js">
+		<link rel="modulepreload" href="./_app/immutable/chunks/legacy.BiAS0Eqr.js">
+		<link rel="modulepreload" href="./_app/immutable/chunks/attributes.BRDq30Wc.js">
+		<link rel="modulepreload" href="./_app/immutable/chunks/lifecycle.BSAvnUp_.js">
 		<link rel="modulepreload" href="./_app/immutable/chunks/three.module.CSvJj96r.js">
-		<link rel="modulepreload" href="./_app/immutable/chunks/model_store.rj2JVtEX.js">
-		<link rel="modulepreload" href="./_app/immutable/nodes/9.BAcczSOk.js">
-		<link rel="modulepreload" href="./_app/immutable/chunks/each.Dd4ZJ1ZK.js">
+		<link rel="modulepreload" href="./_app/immutable/chunks/model_store.qqhDCY_Z.js">
+		<link rel="modulepreload" href="./_app/immutable/nodes/9.pXVYSoau.js">
+		<link rel="modulepreload" href="./_app/immutable/chunks/each.BDmCXmdX.js">
 		<link rel="modulepreload" href="./_app/immutable/chunks/utils.DYyNIFpO.js"><!--[--><!--]--><title>Immersion</title>
 
 		<!-- setting up color theme on init -->
@@ -42,31 +47,47 @@
 				try {
 					//const theme = localStorage.getItem('color-scheme') || 'light';
 					const theme = 'dark';
-		
+
 					document.documentElement.setAttribute('color-scheme', theme);
 					localStorage.setItem('color-scheme', theme);
-
 				} catch (e) {
-					console.error("LocalStorage access error:", e);
+					console.error('LocalStorage access error:', e);
 				}
 			})();
 		</script>
-	
+
+		<!-- integration mathjax -->
+		<script>
+			window.MathJax = {
+				tex: {
+					inlineMath: [
+						['$', '$'],
+						['\\(', '\\)']
+					],
+					packages: ['base', 'color', 'ams']	
+				},
+				svg: {
+					fontCache: 'global'
+				}
+			};
+		</script>
+		<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg-full.js"></script>
+
 	</head>
 	<body data-sveltekit-preload-data="hover">
-		<div style="display: contents"><!--[--><!--[--><!----><nav class="svelte-sr0dcz"><div class="icon-container svelte-sr0dcz"><div class="icon-group svelte-sr0dcz"><a href="https://github.com/kutaycoskuner/immersion" target="_blank" rel="noopener noreferrer" class="icon-button svelte-sr0dcz"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385c.6.105.825-.255.825-.57c0-.285-.015-1.23-.015-2.235c-3.015.555-3.795-.735-4.035-1.41c-.135-.345-.72-1.41-1.23-1.695c-.42-.225-1.02-.78-.015-.795c.945-.015 1.62.87 1.845 1.23c1.08 1.815 2.805 1.305 3.495.99c.105-.78.42-1.305.765-1.605c-2.67-.3-5.46-1.335-5.46-5.925c0-1.305.465-2.385 1.23-3.225c-.12-.3-.54-1.53.12-3.18c0 0 1.005-.315 3.3 1.23c.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23c.66 1.65.24 2.88.12 3.18c.765.84 1.23 1.905 1.23 3.225c0 4.605-2.805 5.625-5.475 5.925c.435.375.81 1.095.81 2.22c0 1.605-.015 2.895-.015 3.3c0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"></path></svg><!----></a> <a href="https://threejs.org/" target="_blank" rel="noopener noreferrer" class="icon-button svelte-sr0dcz"><svg viewBox="0 0 226.77 226.77" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><g transform="translate(8.964 4.2527)" fill-rule="evenodd" stroke="#000" stroke-linecap="butt" stroke-linejoin="round" stroke-width="4"><path d="m63.02 200.61-43.213-174.94 173.23 49.874z"></path><path d="m106.39 50.612 21.591 87.496-86.567-24.945z"></path><path d="m84.91 125.03-10.724-43.465 43.008 12.346z"></path><path d="m63.458 38.153 10.724 43.465-43.008-12.346z"></path><path d="m149.47 62.93 10.724 43.465-43.008-12.346z"></path><path d="m84.915 125.06 10.724 43.465-43.008-12.346z"></path></g></svg><!----></a> <!--[!--><!--]--></div></div></nav><!----> <nav class="svelte-1cmfru4"><a href="./">vectors</a> <a href="./unfolding">unfolding cube</a></nav><!----> <!--[!--><!--]--><!----> <!--[!--><!----><section><ul class="posts svelte-ui5dwo"><!--[--><li class="post svelte-ui5dwo"><a href="blog/md/test02" class="title svelte-ui5dwo">Post I</a> <p class="date svelte-ui5dwo">Mar 1, 2023</p> <p class="description svelte-ui5dwo">First post</p></li><li class="post svelte-ui5dwo"><a href="blog/md/test03" class="title svelte-ui5dwo">Post II</a> <p class="date svelte-ui5dwo">Mar 1, 2023</p> <p class="description svelte-ui5dwo">Second post</p></li><li class="post svelte-ui5dwo"><a href="blog/md/test04_component" class="title svelte-ui5dwo">Test 4-Components</a> <p class="date svelte-ui5dwo">Mar 1, 2023</p> <p class="description svelte-ui5dwo">Second post</p></li><!--]--></ul></section><!----><!--]--><!----><!----><!--]--> <!--[!--><!--]--><!--]-->
+		<div style="display: contents"><!--[--><!--[--><!----><nav class="svelte-sr0dcz"><div class="icon-container svelte-sr0dcz"><div class="icon-group svelte-sr0dcz"><a href="https://github.com/kutaycoskuner/immersion" target="_blank" rel="noopener noreferrer" class="icon-button svelte-sr0dcz"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385c.6.105.825-.255.825-.57c0-.285-.015-1.23-.015-2.235c-3.015.555-3.795-.735-4.035-1.41c-.135-.345-.72-1.41-1.23-1.695c-.42-.225-1.02-.78-.015-.795c.945-.015 1.62.87 1.845 1.23c1.08 1.815 2.805 1.305 3.495.99c.105-.78.42-1.305.765-1.605c-2.67-.3-5.46-1.335-5.46-5.925c0-1.305.465-2.385 1.23-3.225c-.12-.3-.54-1.53.12-3.18c0 0 1.005-.315 3.3 1.23c.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23c.66 1.65.24 2.88.12 3.18c.765.84 1.23 1.905 1.23 3.225c0 4.605-2.805 5.625-5.475 5.925c.435.375.81 1.095.81 2.22c0 1.605-.015 2.895-.015 3.3c0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"></path></svg><!----></a> <a href="https://threejs.org/" target="_blank" rel="noopener noreferrer" class="icon-button svelte-sr0dcz"><svg viewBox="0 0 226.77 226.77" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><g transform="translate(8.964 4.2527)" fill-rule="evenodd" stroke="#000" stroke-linecap="butt" stroke-linejoin="round" stroke-width="4"><path d="m63.02 200.61-43.213-174.94 173.23 49.874z"></path><path d="m106.39 50.612 21.591 87.496-86.567-24.945z"></path><path d="m84.91 125.03-10.724-43.465 43.008 12.346z"></path><path d="m63.458 38.153 10.724 43.465-43.008-12.346z"></path><path d="m149.47 62.93 10.724 43.465-43.008-12.346z"></path><path d="m84.915 125.06 10.724 43.465-43.008-12.346z"></path></g></svg><!----></a> <!--[!--><!--]--></div></div></nav><!----> <nav class="svelte-1cmfru4"><a href="./">vectors</a></nav><!----> <!--[!--><!--]--><!----> <!--[!--><!----><section><ul class="posts svelte-ui5dwo"><!--[--><li class="post svelte-ui5dwo"><a href="blog/md/test02" class="title svelte-ui5dwo">Post I</a> <p class="date svelte-ui5dwo">Mar 1, 2023</p> <p class="description svelte-ui5dwo">First post</p></li><li class="post svelte-ui5dwo"><a href="blog/md/test03" class="title svelte-ui5dwo">Post II</a> <p class="date svelte-ui5dwo">Mar 1, 2023</p> <p class="description svelte-ui5dwo">Second post</p></li><li class="post svelte-ui5dwo"><a href="blog/md/test04_component" class="title svelte-ui5dwo">Test 4-Components</a> <p class="date svelte-ui5dwo">Mar 1, 2023</p> <p class="description svelte-ui5dwo">Second post</p></li><!--]--></ul></section><!----><!--]--><!----><!----><!--]--> <!--[!--><!--]--><!--]-->
 			
 			<script>
 				{
-					__sveltekit_1qe5xiw = {
+					__sveltekit_1ad2ws = {
 						base: new URL(".", location).pathname.slice(0, -1)
 					};
 
 					const element = document.currentScript.parentElement;
 
 					Promise.all([
-						import("./_app/immutable/entry/start.CPjR2KCx.js"),
-						import("./_app/immutable/entry/app.hoAH-gQV.js")
+						import("./_app/immutable/entry/start.DlpqXSO8.js"),
+						import("./_app/immutable/entry/app.q-oqWxYd.js")
 					]).then(([kit, app]) => {
 						kit.start(app, element, {
 							node_ids: [0, 9],
