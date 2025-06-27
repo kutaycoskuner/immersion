@@ -24,13 +24,13 @@
 	// export const STOREVECTOR1 = writable({ x: 1, y: 1, z: 1 });
 	// export const STOREVECTOR2 = writable({ x: 0, y: 0, z: 0 });
 
-	let paneVector1 = { x: 1, y: 1, z: 1 };
+	let paneVector1 = { x: 1, y: 0, z: 0 };
 	let threeVector1: THREE.Line = drawVector(1, 1, 1, vectorScale);
 	let threeVectorTip1: THREE.Mesh;
 	let threeVectorText1: THREE.Sprite;
 	let threeVectorUpRef1: THREE.Line;
 
-	let paneVector2 = { x: 0, y: 0, z: 0 };
+	let paneVector2 = { x: 1, y: 1, z: 0 };
 	let threeVector2: THREE.Line = drawVector(0, 0, 0, vectorScale);
 	let threeVectorTip2: THREE.Mesh;
 	let threeVectorText2: THREE.Sprite;

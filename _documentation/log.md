@@ -49,6 +49,10 @@
     - add markdown rendering with footnotes and toc
     - add json render
 
+- [0.26.1] added dot product steps
+    - 20250627
+        - adding dot product definition steps
+
 - [0.25.0] added mathjax cdn
     - 20250627
         - added mathjax and dot product calculation components

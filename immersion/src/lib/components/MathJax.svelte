@@ -29,4 +29,10 @@
   }
 </script>
 
-<div id={id} class="mathjax" bind:this={container}></div>
+<div class="mathjax" bind:this={container}></div>
+
+<style>
+  .mathjax {
+    padding-top: 0.8rem;
+  }
+</style>
