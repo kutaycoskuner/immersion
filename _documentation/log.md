@@ -49,6 +49,11 @@
     - add markdown rendering with footnotes and toc
     - add json render
 
+- [0.25.0] added mathjax cdn
+    - 20250627
+        - added mathjax and dot product calculation components
+        - added matjax as cdn
+
 - [0.24.1] added ground plane projection reference
     - 19-May-2025
         - changed theme to fixed light on app

@@ -10,6 +10,7 @@
 	import { modelStore } from '../../store/model_store';
 	import { theme } from '$lib/ColorTheme.svelte';
 	import { writable } from 'svelte/store';
+	import { STOREVECTOR1, STOREVECTOR2 } from '$lib/stores/vectors';
 
 	let canvas: HTMLCanvasElement;
 	let scene: THREE.Scene;
@@ -20,8 +21,8 @@
 
 	let pane: Pane;
 	let vectorScale = 5;
-	export const STOREVECTOR1 = writable({ x: 1, y: 1, z: 1 });
-	export const STOREVECTOR2 = writable({ x: 0, y: 0, z: 0 });
+	// export const STOREVECTOR1 = writable({ x: 1, y: 1, z: 1 });
+	// export const STOREVECTOR2 = writable({ x: 0, y: 0, z: 0 });
 
 	let paneVector1 = { x: 1, y: 1, z: 1 };
 	let threeVector1: THREE.Line = drawVector(1, 1, 1, vectorScale);
