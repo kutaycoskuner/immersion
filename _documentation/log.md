@@ -49,6 +49,11 @@
     - add markdown rendering with footnotes and toc
     - add json render
 
+- [0.26.2] fixed unfolding cube
+    - 20250703
+        - fix ondestroy for tweakpane
+        - fix unfolding cube
+
 - [0.26.1] added dot product steps
     - 20250627
         - adding dot product definition steps

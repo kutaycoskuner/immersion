@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
+	import { onMount, onDestroy } from 'svelte';
 	import * as THREE from 'three';
 	import { Pane } from 'tweakpane';
 	import { fadingGridLines, fadingXAxis, fadingYAxis } from '$lib/shaders/FadingGridLines.ts';
@@ -9,7 +9,6 @@
 	import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 	import { modelStore } from '../../store/model_store';
 	import { theme } from '$lib/ColorTheme.svelte';
-	import { writable } from 'svelte/store';
 	import { STOREVECTOR1, STOREVECTOR2 } from '$lib/stores/vectors';
 
 	let canvas: HTMLCanvasElement;
@@ -448,11 +447,10 @@
 				STOREVECTOR2.set({ ...paneVector2 });
 			});
 
-		const btn = tab.pages[0]
-			.addButton({
-				title: 'Animate Scaler Product',
-				// label: 'counter' // optional
-			});
+		const btn = tab.pages[0].addButton({
+			title: 'Animate Scaler Product'
+			// label: 'counter' // optional
+		});
 
 		// add controls
 		// -------------------------------------------------------------------------------
@@ -514,6 +512,13 @@
 			window.removeEventListener('keydown', (event) => (keyStates[event.key.toLowerCase()] = true));
 			window.removeEventListener('keyup', (event) => (keyStates[event.key.toLowerCase()] = false));
 		};
+	});
+	
+	onDestroy(() => {
+		if (pane) {
+			pane.dispose(); // Properly dispose the Tweakpane instance
+			// pane = null;
+		}
 	});
 </script>
 

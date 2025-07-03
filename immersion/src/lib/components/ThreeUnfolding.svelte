@@ -2,7 +2,14 @@
 	import { onMount } from 'svelte';
 	import * as THREE from 'three';
 
+	// === Types & Constants ===
+
 	type FaceName = 'front' | 'back' | 'left' | 'right' | 'top';
+
+	const faceSize = 1;
+	const orbitSensitivity = 0.005;
+
+	// === Variables ===
 
 	let canvas: HTMLCanvasElement;
 	let scene: THREE.Scene;
@@ -10,11 +17,14 @@
 	let renderer: THREE.WebGLRenderer;
 
 	let root: THREE.Group;
-	let unfolded = false;
-
-	const faceSize = 1;
-
 	let pivots: Record<FaceName, THREE.Group> = {};
+
+	let unfolded = false;
+	let unfolding = false;
+	let unfoldTimer = 0;
+
+	let isDragging = false;
+	let previousMousePos = { x: 0, y: 0 };
 
 	const rotationTargets: Record<FaceName, number> = {
 		front: 0,
@@ -24,13 +34,7 @@
 		top: 0
 	};
 
-	const faceOrder: FaceName[] = ['front', 'left', 'right', 'back', 'top'];
-
-	function easeInOutQuad(t: number): number {
-		return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
-	}
-
-	let unfoldProgress: Record<FaceName, number> = {
+	const unfoldProgress: Record<FaceName, number> = {
 		front: 0,
 		left: 0,
 		right: 0,
@@ -38,10 +42,59 @@
 		top: 0
 	};
 
-	let unfolding = false;
-	let unfoldTimer = 0;
+	const faceOrder: FaceName[] = ['front', 'left', 'right', 'back', 'top'];
+
+	// === Utility Functions ===
+
+	/** Easing function for smooth animation */
+	function easeInOutQuad(t: number): number {
+		return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
+	}
+
+	// === Event Handlers: Mouse Drag for Orbit Controls ===
+
+	function onMouseDown(event: MouseEvent) {
+		isDragging = true;
+		previousMousePos.x = event.clientX;
+		previousMousePos.y = event.clientY;
+	}
+
+	function onMouseMove(event: MouseEvent) {
+		if (!isDragging) return;
+
+		const deltaX = event.clientX - previousMousePos.x;
+		const deltaY = event.clientY - previousMousePos.y;
+
+		previousMousePos.x = event.clientX;
+		previousMousePos.y = event.clientY;
+
+		// Convert camera position to spherical coordinates relative to origin
+		const offset = new THREE.Vector3().copy(camera.position);
+		const spherical = new THREE.Spherical().setFromVector3(offset);
+
+		// Adjust angles by mouse movement with sensitivity
+		spherical.theta -= deltaX * orbitSensitivity;
+		spherical.phi -= deltaY * orbitSensitivity;
+
+		// Clamp vertical angle to avoid flipping
+		const EPS = 0.01;
+		spherical.phi = Math.max(EPS, Math.min(Math.PI - EPS, spherical.phi));
+
+		// Convert back to Cartesian coordinates
+		offset.setFromSpherical(spherical);
+
+		camera.position.copy(offset);
+		camera.lookAt(0, 0, 0);
+	}
+
+	function onMouseUp() {
+		isDragging = false;
+	}
+
+	// === Initialization & Scene Setup ===
 
 	onMount(() => {
+		// Scene and camera setup
 		scene = new THREE.Scene();
 		camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
 		camera.position.z = 5;
@@ -52,8 +105,17 @@
 		root = new THREE.Group();
 		scene.add(root);
 
+		// Geometry for cube faces
 		const geom = new THREE.PlaneGeometry(faceSize, faceSize);
 
+		// Helper: Create a hinge marker sphere (unused but available)
+		function createHingeMarker() {
+			const geometry = new THREE.SphereGeometry(0.05, 12, 12);
+			const material = new THREE.MeshBasicMaterial({ color: 'yellow' });
+			return new THREE.Mesh(geometry, material);
+		}
+
+		// Helper: Add a canvas-based text label texture to a mesh
 		function addLabel(mesh: THREE.Mesh, text: string) {
 			const canvas = document.createElement('canvas');
 			canvas.width = 256;
@@ -66,11 +128,14 @@
 			ctx.textAlign = 'center';
 			ctx.textBaseline = 'middle';
 			ctx.fillText(text, canvas.width / 2, canvas.height / 2);
+
 			const texture = new THREE.CanvasTexture(canvas);
-			(mesh.material as THREE.MeshBasicMaterial).map = texture;
-			(mesh.material as THREE.MeshBasicMaterial).needsUpdate = true;
+			const material = mesh.material as THREE.MeshBasicMaterial;
+			material.map = texture;
+			material.needsUpdate = true;
 		}
 
+		// Helper: Create a colored face mesh with label
 		function makeFace(color: string, label: string) {
 			const mat = new THREE.MeshBasicMaterial({ color, side: THREE.DoubleSide });
 			const mesh = new THREE.Mesh(geom, mat);
@@ -78,50 +143,118 @@
 			return mesh;
 		}
 
-		const bottom = makeFace('#cccccc', 'bottom');
-		bottom.rotation.x = -Math.PI / 2;
-		bottom.position.y = -0.5;
-		root.add(bottom);
+		// === Face Data Definitions ===
 
-		const createFace = (
-			name: FaceName,
-			pivotOffset: [number, number, number],
-			faceOffset: [number, number, number],
-			initialRotation: [number, number, number],
-			color: string,
-			label: string
-		) => {
-			const pivot = new THREE.Group();
-			pivot.position.set(...pivotOffset);
-			const face = makeFace(color, label);
-			face.position.set(...faceOffset);
-			face.rotation.set(...initialRotation);
-			pivot.add(face);
-			root.add(pivot);
-			pivots[name] = pivot;
+		interface FaceData {
+			name: FaceName;
+			color: string;
+			label: string;
+			pivotPosition: THREE.Vector3;
+			facePosition: THREE.Vector3;
+			faceRotation: THREE.Euler;
+			parent: THREE.Group | null;
+		}
+
+		// Bottom face is fixed, not unfolded
+		const bottomFaceData = {
+			color: '#cccccc',
+			label: 'bottom',
+			rotation: new THREE.Euler(-Math.PI / 2, 0, 0),
+			position: new THREE.Vector3(0, -0.5, 0),
+			parent: root
 		};
 
-		// Create front, back, left, and right faces
-		createFace('front', [0, -0.5, 0.5], [0, 0.5, 0], [0, 0, 0], '#0000ff', 'front');
-		createFace('back', [0, -0.5, -0.5], [0, 0.5, 0], [0, Math.PI, 0], '#aaccff', 'back');
-		createFace('left', [-0.5, -0.5, 0], [0, 0.5, 0], [0, Math.PI / 2, 0], '#ff0000', 'left');
-		createFace('right', [0.5, -0.5, 0], [0, 0.5, 0], [0, -Math.PI / 2, 0], '#ffaaaa', 'right');
+		const facesData: FaceData[] = [
+			{
+				name: 'front',
+				color: '#a0c4ff', // pastel blue
+				label: 'front',
+				pivotPosition: new THREE.Vector3(0, -0.5, 0.5),
+				facePosition: new THREE.Vector3(0, 0.5, 0),
+				faceRotation: new THREE.Euler(0, 0, 0),
+				parent: root
+			},
+			{
+				name: 'back',
+				color: '#d0e7ff', // very light pastel blue
+				label: 'back',
+				pivotPosition: new THREE.Vector3(0, -0.5, -0.5),
+				facePosition: new THREE.Vector3(0, 0.5, 0),
+				faceRotation: new THREE.Euler(0, Math.PI, 0),
+				parent: root
+			},
+			{
+				name: 'left',
+				color: '#ff9a9a', // pastel red / light pink
+				label: 'left',
+				pivotPosition: new THREE.Vector3(-0.5, -0.5, 0),
+				facePosition: new THREE.Vector3(0, 0.5, 0),
+				faceRotation: new THREE.Euler(0, Math.PI / 2, 0),
+				parent: root
+			},
+			{
+				name: 'right',
+				color: '#ffd6d6', // very light pastel pink
+				label: 'right',
+				pivotPosition: new THREE.Vector3(0.5, -0.5, 0),
+				facePosition: new THREE.Vector3(0, 0.5, 0),
+				faceRotation: new THREE.Euler(0, -Math.PI / 2, 0),
+				parent: root
+			},
+			{
+				name: 'top',
+				color: '#b9f6ca', // pastel green
+				label: 'top',
+				pivotPosition: new THREE.Vector3(0, 1.0, 0),
+				facePosition: new THREE.Vector3(0, 0, 0.5),
+				faceRotation: new THREE.Euler(-Math.PI / 2, 0, 0),
+				parent: null // assigned dynamically later to back pivot
+			}
+		];
 
-		const topHinge = new THREE.Group();
-		topHinge.position.set(0, 0.5, -0.5); // Back-top edge position
-		pivots.back.add(topHinge); // Hinge follows back face
+		// === Create Bottom Face (Fixed) ===
 
-		// Create actual top pivot and face
-		const topPivot = new THREE.Group();
-		topPivot.position.set(0, 0, 1); // Offset forward one face unit
-		const topFace = makeFace('#00ff00', 'top');
-		topFace.rotation.set(-Math.PI / 2, 0, 0); // Face pointing up
-		topFace.position.set(0, 0.5, 0); // Lift it above its own pivot
-		topPivot.add(topFace);
-		topHinge.add(topPivot);
+		const bottomGeom = new THREE.PlaneGeometry(faceSize, faceSize);
+		const bottomMat = new THREE.MeshBasicMaterial({
+			color: bottomFaceData.color,
+			side: THREE.DoubleSide
+		});
+		const bottomMesh = new THREE.Mesh(bottomGeom, bottomMat);
+		addLabel(bottomMesh, bottomFaceData.label);
+		bottomMesh.rotation.copy(bottomFaceData.rotation);
+		bottomMesh.position.copy(bottomFaceData.position);
+		bottomFaceData.parent.add(bottomMesh);
 
-		// Store for later animation
-		pivots.top = topHinge;
+		// === Create Faces with Hinge Pivots ===
+
+		for (const face of facesData) {
+			const pivot = new THREE.Group();
+			pivot.position.copy(face.pivotPosition);
+			// pivot.add(createHingeMarker()); // Uncomment for debugging hinge points
+
+			const mesh = makeFace(face.color, face.label);
+			mesh.position.copy(face.facePosition);
+			mesh.rotation.copy(face.faceRotation);
+
+			pivot.add(mesh);
+
+			// Attach top face pivot to back face pivot, else directly to parent/root
+			if (face.name === 'top') {
+				if (pivots.back) {
+					pivots.back.add(pivot);
+				} else {
+					root.add(pivot);
+				}
+			} else {
+				(face.parent ?? root).add(pivot);
+			}
+
+			if (face.name !== 'bottom') {
+				pivots[face.name] = pivot;
+			}
+		}
+
+		// === Window & Input Event Listeners ===
 
 		window.addEventListener('resize', () => {
 			renderer.setSize(window.innerWidth, window.innerHeight);
@@ -129,22 +262,31 @@
 			camera.updateProjectionMatrix();
 		});
 
+		window.addEventListener('mousedown', onMouseDown);
+		window.addEventListener('mousemove', onMouseMove);
+		window.addEventListener('mouseup', onMouseUp);
+
 		animate();
 	});
+
+	// === Animation Loop ===
 
 	function animate() {
 		requestAnimationFrame(animate);
 
+		// Slowly rotate cube when folded
 		if (!unfolded) {
-			root.rotation.y += 0.005;
-			root.rotation.x += 0.002;
+			root.rotation.y += 0.01;
+			root.rotation.x += 0.004;
 		}
 
+		// Start unfolding animation when unfolded flag is true
 		if (unfolded && !unfolding) {
 			unfolding = true;
 			unfoldTimer = 0;
 		}
 
+		// Reset animation when folding back
 		if (!unfolded && unfolding) {
 			unfolding = false;
 			faceOrder.forEach((name) => {
@@ -153,33 +295,35 @@
 			});
 		}
 
+		// Animate unfolding progress
 		if (unfolding) {
-			unfoldTimer += 1;
-			faceOrder.forEach((name, index) => {
-				const delay = index * 40;
-				if (unfoldTimer > delay) {
-					const p = Math.min((unfoldTimer - delay) / 40, 1);
-					unfoldProgress[name] = p;
-					rotationTargets[name] = (Math.PI / 2) * easeInOutQuad(p);
+			unfoldTimer++;
+			const progress = Math.min(unfoldTimer / 40, 1);
+
+			faceOrder.forEach((name) => {
+				unfoldProgress[name] = progress;
+
+				// Top face folds differently
+				if (name === 'top') {
+					rotationTargets[name] = -(Math.PI / 2) * easeInOutQuad(progress);
+				} else {
+					rotationTargets[name] = (Math.PI / 2) * easeInOutQuad(progress);
 				}
 			});
 		}
+
+		// Apply rotations to pivots for unfolding effect
 
 		pivots.front.rotation.x = rotationTargets.front;
 		pivots.back.rotation.x = -rotationTargets.back;
 		pivots.left.rotation.z = rotationTargets.left;
 		pivots.right.rotation.z = -rotationTargets.right;
-
-		// Update the top face rotation when all movements are finished
-		if (unfolding && unfoldTimer > faceOrder.length * 40) {
-			const p = Math.min((unfoldTimer - faceOrder.length * 40) / 40, 1);
-			const eased = easeInOutQuad(p);
-			rotationTargets.top = -(Math.PI / 2) * eased;
-		}
 		pivots.top.rotation.x = rotationTargets.top;
 
 		renderer.render(scene, camera);
 	}
+
+	// === Pointer Event Handlers for Unfold Trigger ===
 
 	function handlePointerEnter() {
 		unfolded = true;
