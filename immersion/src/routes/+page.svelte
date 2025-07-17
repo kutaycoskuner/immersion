@@ -105,6 +105,12 @@
 		<MathJax formula={display_raw_vectors} />
 
 		<h2>Step 1: Normalize vectors by dividing its dimensions to its length</h2>
+
+		<p>
+			Note: This step is to eliminate length value of vector from the calculation. 
+			<br> Its not applied regularly.
+		</p>
+
 		<MathJax formula={normalizationFormula} />
 		<MathJax formula={display_normalized_vectors} />
 
@@ -114,24 +120,29 @@
 		<MathJax formula={dotProduct} />
 
 		<h2>Step 3: What it represents?</h2>
-		<p>This value represents perpendicular projection of v1 to v2
-		<br> or cos angle between these two vectors</p>
+		<p>
+			This value represents perpendicular projection of v1 to v2
+			<br /> or cos angle between these two vectors
+			<br /> if the value is negative, it means projection is on reverse direction.
+		</p>
 
 		<h2>Step 4: Self experimentation and comprehension</h2>
 		<p>
 			you can test it by giving max min an mid point values.
-			<br> for instance, 
-			<br> when vectors are perpendicular to each other dot product is 0
-			<br> when vectors are overlapping dot product is 1
-			<br> this value will occilate between -1 and +1
-			<br>if you do not normalize the values, then the value will be cos * length of v1 and length of v2.</p>
+			<br /> for instance,
+			<br /> when vectors are perpendicular to each other dot product is 0
+			<br /> when vectors are overlapping dot product is 1
+			<br /> this value will occilate between -1 and +1
+			<br />if you do not normalize the values, then the value will be cos * length of v1 and length
+			of v2.
+		</p>
 	</div>
 </main>
 
 <style>
 	.math-overlay {
 		position: fixed; /* <- this is key */
-		top: 5em;
+		top: 3em;
 		left: 1em;
 		width: 100%;
 		padding: 1rem;

@@ -1,0 +1,30 @@
+{
+    "name": "outliner-test-scene",
+    "description" : "a test scene for testing outlining technique",
+    "version" : 1,  
+    "type": "scene",
+    "formats": ["gltf", "obj"],
+    "accessDate" : "2025-01-19",
+    "screenshot" : "ss-cycles.png",
+    "paths" : ["gltf", "obj"],
+    "tags" : ["scene"],
+    "legal" : [
+        {
+            "authors" : 
+            [
+                "Kutay Coskuner"
+            ],
+            "owner" : "Kutay Coskuner",
+            "source": "",
+            "publishDate" : "2025-01-19",
+            "license" : "GNU General Public License",
+            "licenceURLs" : [
+                "https://www.gnu.org/licenses/quick-guide-gplv3.html",
+                "https://www.tldrlegal.com/license/gnu-general-public-license-v3-gpl-3"
+            ],
+            "what" : "This scene was created in Blender and features Suzanne (the monkey model), a special creation by Willem-Paul van Overbruggen. All rights to the model belong to its respective owners. To the best of our knowledge, Suzanne is distributed under Blender's GNU General Public License (GPL)."
+        }
+    ],
+    "template": 5
+}
+

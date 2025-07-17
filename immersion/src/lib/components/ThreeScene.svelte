@@ -1,4 +1,6 @@
 <script lang="ts">
+	//				imports
+	//  --------------------------------------------------------------------------------------
 	import { onMount, onDestroy } from 'svelte';
 	import * as THREE from 'three';
 	import { Pane } from 'tweakpane';
@@ -10,7 +12,11 @@
 	import { modelStore } from '../../store/model_store';
 	import { theme } from '$lib/ColorTheme.svelte';
 	import { STOREVECTOR1, STOREVECTOR2 } from '$lib/stores/vectors';
+	import { derived } from 'svelte/store';
 
+
+	//				variables
+	//  --------------------------------------------------------------------------------------
 	let canvas: HTMLCanvasElement;
 	let scene: THREE.Scene;
 	let camera: THREE.PerspectiveCamera;
@@ -20,27 +26,49 @@
 
 	let pane: Pane;
 	let vectorScale = 5;
-	// export const STOREVECTOR1 = writable({ x: 1, y: 1, z: 1 });
-	// export const STOREVECTOR2 = writable({ x: 0, y: 0, z: 0 });
 
-	let paneVector1 = { x: 1, y: 0, z: 0 };
+	let paneVector1 = { x: 1, y: 1, z: 0 };
 	let threeVector1: THREE.Line = drawVector(1, 1, 1, vectorScale);
 	let threeVectorTip1: THREE.Mesh;
 	let threeVectorText1: THREE.Sprite;
 	let threeVectorUpRef1: THREE.Line;
 
-	let paneVector2 = { x: 1, y: 1, z: 0 };
+	let paneVector2 = { x: 1, y: 0, z: 0 };
 	let threeVector2: THREE.Line = drawVector(0, 0, 0, vectorScale);
 	let threeVectorTip2: THREE.Mesh;
 	let threeVectorText2: THREE.Sprite;
 	let threeVectorUpRef2: THREE.Line;
+
+	// assistants
+	let angleArc: THREE.Line | null = null;
+	let angleLabel: THREE.Sprite | null = null;
+	// let planeTriangle: THREE.Mesh | null = null;
+	let scalarProjectionLine: THREE.Line | null = null;
+
+	// ui
+	let showGroundProjections = true;
+	let showAngleArc = true;
+	let showAngleLabel = true;
+	let showTipText = true;
+	let showProjection = true;
+
+	const vectorPair = derived([STOREVECTOR1, STOREVECTOR2], ([$v1, $v2]) => ({ v1: $v1, v2: $v2 }));
 
 	let currentTheme: string;
 	theme.themeStore.subscribe((value) => {
 		currentTheme = value;
 	});
 
+	//				reactives
+	//  --------------------------------------------------------------------------------------
 	// Reactive statement to call the function whenever `currentTheme` changes
+	$: vectorPair.subscribe(({ v1: a, v2: b }) => {
+		const vec1 = new THREE.Vector3(a.x, a.y, a.z);
+		const vec2 = new THREE.Vector3(b.x, b.y, b.z);
+		updateAngleArc(vec1, vec2);
+		updateScalarProjectionLine(vec1, vec2);
+	});
+
 	$: currentTheme && updateSceneBackground();
 
 	$: STOREVECTOR1.subscribe((vector) => {
@@ -72,6 +100,116 @@
 			camera.lookAt(center.x, center.y, center.z);
 		}
 	});
+
+	//				functions
+	//  --------------------------------------------------------------------------------------
+
+	function scalarProduct(a: THREE.Vector3, b: THREE.Vector3): number {
+		return a.dot(b);
+	}
+
+	function updateScalarProjectionLine(vec1: THREE.Vector3, vec2: THREE.Vector3) {
+		if (!scene) {
+			return;
+		}
+		// Remove old line if it exists
+		if (scalarProjectionLine) {
+			scene.remove(scalarProjectionLine);
+			scalarProjectionLine.geometry.dispose();
+			(scalarProjectionLine.material as THREE.Material).dispose();
+			scalarProjectionLine = null;
+		}
+
+		// Draw and add new line
+		scalarProjectionLine = drawReferenceLineForScalar(vec1, vec2);
+		scene.add(scalarProjectionLine);
+	}
+
+	function drawReferenceLineForScalar(
+		tipPosition: THREE.Vector3,
+		projected: THREE.Vector3
+	): THREE.Line {
+		let start = tipPosition.clone().normalize();
+		let end = projected.clone().normalize();
+
+		end = end.multiplyScalar(scalarProduct(start, end));
+
+		start = start.multiplyScalar(vectorScale);
+		end = end.multiplyScalar(vectorScale);
+
+		// Create geometry
+		const geometry = new THREE.BufferGeometry().setFromPoints([start, end]);
+
+		// Create material (dashed line for better visual distinction)
+		const material = new THREE.LineDashedMaterial({
+			color: 0x39ff14, // Gray color
+			dashSize: 0.1,
+			gapSize: 0.05,
+			linewidth: 1,
+			transparent: true,
+			opacity: 0.1
+		});
+
+		// Create the line
+		const line = new THREE.Line(geometry, material);
+		line.computeLineDistances(); // Required for dashed lines
+
+		return line;
+	}
+
+	function updateAngleArc(vec1: THREE.Vector3, vec2: THREE.Vector3) {
+		if (!scene) return; // guard
+
+		// Remove previous arc and label if they exist
+		if (angleArc) {
+			scene.remove(angleArc);
+			angleArc.geometry.dispose();
+			(angleArc.material as THREE.Material).dispose();
+			angleArc = null;
+		}
+		if (angleLabel) {
+			scene.remove(angleLabel);
+			(angleLabel.material as THREE.SpriteMaterial).map?.dispose();
+			(angleLabel.material as THREE.Material).dispose();
+			angleLabel = null;
+		}
+
+		// Compute angle
+		const radius = 1.5;
+		const segments = 32;
+		const angle = vec1.angleTo(vec2);
+
+		if (angle === 0 || isNaN(angle)) return;
+
+		const normal = new THREE.Vector3().crossVectors(vec1, vec2).normalize();
+		if (normal.length() === 0) return;
+
+		const arcPoints: THREE.Vector3[] = [];
+		for (let i = 0; i <= segments; i++) {
+			const t = i / segments;
+			const point = vec1
+				.clone()
+				.applyAxisAngle(normal, angle * t)
+				.normalize()
+				.multiplyScalar(radius);
+			arcPoints.push(point);
+		}
+
+		const geometry = new THREE.BufferGeometry().setFromPoints(arcPoints);
+		const material = new THREE.LineBasicMaterial({ color: 0x666666 });
+		angleArc = new THREE.Line(geometry, material);
+		scene.add(angleArc);
+
+		// Midpoint label
+		const midAngle = angle / 2;
+		const direction = vec1.clone().applyAxisAngle(normal, midAngle).normalize();
+		const labelOffset = direction.clone().multiplyScalar(0.3);
+		const labelPosition = direction.clone().multiplyScalar(radius).add(labelOffset);
+
+		angleLabel = createTextSprite((angle * (180 / Math.PI)).toFixed(1) + '°', '#666666', 64);
+		angleLabel.position.copy(labelPosition);
+		scene.add(angleLabel);
+	}
 
 	function updateVector(x: number, y: number, z: number, vectorIndex: number) {
 		if (typeof window === 'undefined') return;
@@ -229,10 +367,10 @@
 		const posx = tipPosition.x / vectorScale;
 		const posy = tipPosition.y / vectorScale;
 		const posz = tipPosition.z / vectorScale;
-		const text = `(${posx.toFixed(2)}, ${posy.toFixed(2)}, ${posz.toFixed(2)})`;
+		const text = `${posx.toFixed(2)}, ${posy.toFixed(2)}, ${posz.toFixed(2)}`;
 
 		// Create the text sprite with the formatted coordinates
-		const textSprite = createTextSprite(text, 'white', 64); // You can adjust color and size as needed
+		const textSprite = createTextSprite(text, '#666666', 64); // You can adjust color and size as needed
 
 		// Calculate direction and offset
 		const direction = tipPosition.clone().normalize();
@@ -312,6 +450,8 @@
 		return cone;
 	}
 
+	//				events
+	//  --------------------------------------------------------------------------------------
 	onMount(() => {
 		// Set up the scene
 		// -------------------------------------------------------------------------------
@@ -360,6 +500,7 @@
 		// Add scene nodes
 		// -------------------------------------------------------------------------------
 
+		//				drawing grid
 		for (let i = -10; i < 10; i++) {
 			if (i != 0) {
 				scene.add(getSimpleLine(10, i, 'x', fadingGridLines));
@@ -367,10 +508,11 @@
 			}
 		}
 
+		// 				drawing z,x implication axis
 		scene.add(getSimpleLine(10, 0, 'z', fadingXAxis));
 		scene.add(getSimpleLine(10, 0, 'x', fadingYAxis));
 
-		// Parameters for vector drawing
+		// 				Parameters for vector drawing
 		const length = 0.2; // Length of each vector
 		const angleIncrement = 45; // Angle increment between vectors in degrees
 		const numVectors = 360 / angleIncrement; // Number of vectors (360 degrees / angleinc)
@@ -384,6 +526,7 @@
 		threeVectorUpRef1 = drawReferenceLineToGroundPlane(threeVectorTip1.position);
 		scene.add(threeVectorUpRef1);
 
+		//				reference to plane
 		threeVectorText1 = addVectorLabelAtTip(threeVectorTip1.position);
 		if (threeVectorTip1.position.length() > 0) scene.add(threeVectorText1);
 
@@ -393,11 +536,21 @@
 		threeVectorTip2 = drawTipOfVector(threeVector2);
 		scene.add(threeVectorTip2);
 
+		//				reference to plane
 		threeVectorUpRef2 = drawReferenceLineToGroundPlane(threeVectorTip2.position);
 		scene.add(threeVectorUpRef2);
 
 		threeVectorText2 = addVectorLabelAtTip(threeVectorTip2.position);
 		if (threeVectorTip2.position.length() > 0) scene.add(threeVectorText2);
+
+		// test
+		// -------------------------------------------------------------------------------
+		const vec1 = new THREE.Vector3(paneVector1.x, paneVector1.y, paneVector1.z);
+		const vec2 = new THREE.Vector3(paneVector2.x, paneVector2.y, paneVector2.z);
+		updateAngleArc(vec1, vec2); // ✅ uses removable version
+		updateScalarProjectionLine(vec1, vec2);
+		// test end
+		// -------------------------------------------------------------------------------
 
 		// Add ambient and directional lights for better visibility of models
 		const ambientLight = new THREE.AmbientLight(0xffffff, 0.3); // Adjust intensity as needed
@@ -446,6 +599,33 @@
 			.on('change', () => {
 				STOREVECTOR2.set({ ...paneVector2 });
 			});
+
+		// 				assistants
+		// tab.pages[0]
+		// 	.addBinding({ showGroundProjections }, 'showGroundProjections', {
+		// 		label: 'Ground Projections'
+		// 	})
+		// 	.on('change', (ev) => {
+		// 		showGroundProjections = ev.value;
+		// 	});
+
+		// tab.pages[0]
+		// 	.addBinding({ showAngleArc }, 'showAngleArc', { label: 'Angle Arc' })
+		// 	.on('change', (ev) => {
+		// 		showAngleArc = ev.value;
+		// 	});
+
+		// tab.pages[0]
+		// 	.addBinding({ showAngleLabel }, 'showAngleLabel', { label: 'Angle Text' })
+		// 	.on('change', (ev) => {
+		// 		showAngleLabel = ev.value;
+		// 	});
+
+		// tab.pages[0]
+		// 	.addBinding({ showTipText }, 'showTipText', { label: 'Tip Text' })
+		// 	.on('change', (ev) => {
+		// 		showTipText = ev.value;
+		// 	});
 
 		const btn = tab.pages[0].addButton({
 			title: 'Animate Scaler Product'
@@ -513,7 +693,7 @@
 			window.removeEventListener('keyup', (event) => (keyStates[event.key.toLowerCase()] = false));
 		};
 	});
-	
+
 	onDestroy(() => {
 		if (pane) {
 			pane.dispose(); // Properly dispose the Tweakpane instance

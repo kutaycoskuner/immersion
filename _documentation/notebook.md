@@ -15,6 +15,7 @@
 - development
     - cd immersion
     - yarn run dev --open 
+    - yarn dev
     
 - deployment
     - https://svelte.dev/docs/kit/adapter-static

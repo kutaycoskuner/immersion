@@ -49,6 +49,21 @@
     - add markdown rendering with footnotes and toc
     - add json render
 
+    - add semi transparent triangle between vectors
+    - steps 1. normalize -> new vectors
+    - step 2. movement from vector 1 to vector 2
+
+- [0.28.0] added projection line of normalized scalar product
+    - 20250718
+        - added projection line of normalized scalar product
+        - add display gltf model
+
+- [0.27.0] added reactive arc between vectors
+    - 20250717
+        - added reactive arc between vectors
+    - 20250715
+        - added new scene for pixel shader
+
 - [0.26.2] fixed unfolding cube
     - 20250703
         - fix ondestroy for tweakpane
