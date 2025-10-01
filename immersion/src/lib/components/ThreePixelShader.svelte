@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onMount, onDestroy } from 'svelte';
+	import { base } from '$app/paths';
 	import * as THREE from 'three';
 	import { Pane } from 'tweakpane';
 	import { fadingGridLines, fadingXAxis, fadingYAxis } from '$lib/shaders/FadingGridLines.ts';
@@ -188,7 +189,7 @@
 		// test
 		// -------------------------------------------------------------------------------
 		loader.load(
-			'/scenes/outliner-testscene/gltf/outliner-testscene.gltf',
+			`${base}/scenes/outliner-testscene/gltf/outliner-testscene.gltf`,
 			(gltf) => {
 				const model = gltf.scene;
 				scene.add(model);

@@ -53,6 +53,10 @@
     - steps 1. normalize -> new vectors
     - step 2. movement from vector 1 to vector 2
 
+- [0.28.1] test model upload testing
+    - 20251001
+        - fixing the import model production issue
+
 - [0.28.0] added projection line of normalized scalar product
     - 20250718
         - added projection line of normalized scalar product
