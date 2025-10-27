@@ -67,6 +67,25 @@
     - tweakpane @tweakpane/core | necessary for ts
     - yarn add three-viewport-gizmo
 
+# how to 
+- <switch to pnpm from yarn>
+    > cd immersion
+    - to remove node modles
+        > Remove-Item -Recurse -Force node_modules
+    - remove yarn.lock
+        > Remove-Item -Force yarn.lock
+    - install pnpm
+        > npm install -g pnpm
+    - test
+        > pnpm -v
+        - error alirsan package.json degistir
+	        - // "packageManager": "yarn@1.22.22+sha1.ac34549e6aa8e7ead463a7407e1c7390f61a6610"
+            - pnpm@9.15.4
+    - install
+        - pnpm install
+        - pnpm up -L
+
+
 # Links
 - svelte tutorialsf
     - https://svelte.dev/tutorial/svelte/welcome-to-svelte
