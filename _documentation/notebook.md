@@ -66,8 +66,20 @@
     - yarn add tweakpane
     - tweakpane @tweakpane/core | necessary for ts
     - yarn add three-viewport-gizmo
+    - pnpm add -D @types/node
+    - to see who is using
+        > pnpm why mathjax-full@3.2.2
+
+
 
 # how to 
+- <clean install pnpm>
+    > cd immersion
+    > pnpm store prune
+    > Remove-Item -Recurse -Force node_modules, pnpm-lock.yaml, .svelte-kit
+    > npx rimraf node_modules
+    > pnpm install
+
 - <switch to pnpm from yarn>
     > cd immersion
     - to remove node modles

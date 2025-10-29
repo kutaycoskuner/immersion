@@ -53,6 +53,12 @@
     - steps 1. normalize -> new vectors
     - step 2. movement from vector 1 to vector 2
 
+- <prepush organizational before math rendering in markdown>
+    - 20251029
+        - isolated mathjax on the index page
+        - create test files for katex.md
+        - split css in app.css
+
 - [0.28.2] package manager change to pnpm
     - 20251027
         - package manaager change to pnpm
