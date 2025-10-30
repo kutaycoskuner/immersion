@@ -45,6 +45,7 @@
 	"dependencies": {
 		"@tweakpane/core": "^2.0.5",
 		"drizzle-orm": "^0.44.7",
+		"katex": "^0.16.25",
 		"postgres": "^3.4.7",
 		"three": "^0.180.0",
 		"three-viewport-gizmo": "^2.2.0",

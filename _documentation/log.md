@@ -53,6 +53,16 @@
     - steps 1. normalize -> new vectors
     - step 2. movement from vector 1 to vector 2
 
+- [0.29.0]<added katex component for math rendering in markdown>
+    - 20251030
+        - disabled app.css
+        - reverted css to app.html
+        - organized test markdowns 
+        - added katex component to render notations
+        - added test for singlemd for katex rendering
+        - added various types for typescript warnings
+        - added $content alias
+
 - <prepush organizational before math rendering in markdown>
     - 20251029
         - isolated mathjax on the index page

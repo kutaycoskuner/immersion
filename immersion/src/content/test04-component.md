@@ -1,7 +1,7 @@
 ---
 template        : 1.6
 revision        : 1.3
-title           : Test 4-Components
+title           : Test component import
 description     : Second post
 category        : 
   - sveltekit

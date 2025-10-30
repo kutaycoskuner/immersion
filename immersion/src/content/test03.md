@@ -1,7 +1,7 @@
 ---
 template        : 1.6
 revision        : 1.3
-title           : Post II
+title           : Test second post
 description     : Second post
 category        : 
   - sveltekit

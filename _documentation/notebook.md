@@ -21,7 +21,7 @@
     - https://svelte.dev/docs/kit/adapter-static
     - yarn add @sveltejs/adapter-static`
     - yarn add gh-pages --dev
-    - yarn build
+    - yarn build / pnpm build
 
 - delete modules
     - yarn remove gh-pages
@@ -69,6 +69,8 @@
     - pnpm add -D @types/node
     - to see who is using
         > pnpm why mathjax-full@3.2.2
+    - install for math rendering
+        > pnpm add katex
 
 
 

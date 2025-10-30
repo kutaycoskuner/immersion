@@ -1,8 +1,8 @@
 ---
 template: 1.6
 revision: 1.3
-title: Test 5 Katex
-description: Second post
+title: Test katex math notation
+description: katex content rendering test
 category:
   - sveltekit
   - svelte
@@ -17,6 +17,10 @@ visibility: true
 sort_order: 1
 ---
 
+<script>
+  import Katex from '$lib/components/Katex.svelte'
+</script>
+
 # Testing KaTeX
 
 
@@ -26,17 +30,6 @@ a^2 + b^2 = c^2
 
 $a^2 + b^2 = c^2$
 
-$$
-a^2 + b^2 = c^2
-$$
-
-
-<!-- $$
-\begin{aligned}
-2x &= 2\lambda x \\
-2y &= 2\lambda y
-\end{aligned}
-$$ -->
-
-Regular Markdown text:
-
+<Katex expression={String.raw`
+\int_0^\infty e^{-x^2} dx = \frac{\sqrt{\pi}}{2}
+`} displayMode={true} />
