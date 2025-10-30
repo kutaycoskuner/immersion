@@ -11,3 +11,9 @@ declare global {
 }
 
 export {};
+
+declare global {
+    interface Window {
+        MathJax: any; // Defines the MathJax object for TypeScript
+    }
+}

@@ -21,7 +21,7 @@
     - https://svelte.dev/docs/kit/adapter-static
     - yarn add @sveltejs/adapter-static`
     - yarn add gh-pages --dev
-    - yarn build
+    - yarn build / pnpm build
 
 - delete modules
     - yarn remove gh-pages
@@ -66,6 +66,39 @@
     - yarn add tweakpane
     - tweakpane @tweakpane/core | necessary for ts
     - yarn add three-viewport-gizmo
+    - pnpm add -D @types/node
+    - to see who is using
+        > pnpm why mathjax-full@3.2.2
+    - install for math rendering
+        > pnpm add katex
+
+
+
+# how to 
+- <clean install pnpm>
+    > cd immersion
+    > pnpm store prune
+    > Remove-Item -Recurse -Force node_modules, pnpm-lock.yaml, .svelte-kit
+    > npx rimraf node_modules
+    > pnpm install
+
+- <switch to pnpm from yarn>
+    > cd immersion
+    - to remove node modles
+        > Remove-Item -Recurse -Force node_modules
+    - remove yarn.lock
+        > Remove-Item -Force yarn.lock
+    - install pnpm
+        > npm install -g pnpm
+    - test
+        > pnpm -v
+        - error alirsan package.json degistir
+	        - // "packageManager": "yarn@1.22.22+sha1.ac34549e6aa8e7ead463a7407e1c7390f61a6610"
+            - pnpm@9.15.4
+    - install
+        - pnpm install
+        - pnpm up -L
+
 
 # Links
 - svelte tutorialsf
