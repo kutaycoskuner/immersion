@@ -53,6 +53,11 @@
     - steps 1. normalize -> new vectors
     - step 2. movement from vector 1 to vector 2
 
+
+- [0.30.0]<added scalar projection vector>
+    - 20260316
+        - added scalar projection vector
+
 - [0.29.0]<added katex component for math rendering in markdown>
     - 20251030
         - disabled app.css

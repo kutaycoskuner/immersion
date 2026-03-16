@@ -14,7 +14,6 @@
 	import { STOREVECTOR1, STOREVECTOR2 } from '$lib/stores/vectors';
 	import { derived } from 'svelte/store';
 
-
 	//				variables
 	//  --------------------------------------------------------------------------------------
 	let canvas: HTMLCanvasElement;
@@ -38,6 +37,11 @@
 	let threeVectorTip2: THREE.Mesh;
 	let threeVectorText2: THREE.Sprite;
 	let threeVectorUpRef2: THREE.Line;
+
+	let threeVectorDot: THREE.Line;
+	let threeVectorTipDot: THREE.Mesh;
+	let threeVectorTextDot: THREE.Sprite;
+	let threeVectorUpRefDot: THREE.Line;
 
 	// assistants
 	let angleArc: THREE.Line | null = null;
@@ -67,6 +71,7 @@
 		const vec2 = new THREE.Vector3(b.x, b.y, b.z);
 		updateAngleArc(vec1, vec2);
 		updateScalarProjectionLine(vec1, vec2);
+		updateDotProjection(vec1, vec2);
 	});
 
 	$: currentTheme && updateSceneBackground();
@@ -105,6 +110,8 @@
 	//  --------------------------------------------------------------------------------------
 
 	function scalarProduct(a: THREE.Vector3, b: THREE.Vector3): number {
+		a.normalize();
+		b.normalize();
 		return a.dot(b);
 	}
 
@@ -123,6 +130,40 @@
 		// Draw and add new line
 		scalarProjectionLine = drawReferenceLineForScalar(vec1, vec2);
 		scene.add(scalarProjectionLine);
+	}
+
+	function updateDotProjection(vec1: THREE.Vector3, vec2: THREE.Vector3) {
+		if (!scene) return;
+
+		// remove old objects
+		if (threeVectorDot) scene.remove(threeVectorDot);
+		if (threeVectorTipDot) scene.remove(threeVectorTipDot);
+		if (threeVectorUpRefDot) scene.remove(threeVectorUpRefDot);
+		if (threeVectorTextDot) scene.remove(threeVectorTextDot);
+
+		const dir = vec2.clone().normalize();
+		const length = scalarProduct(vec1.clone(), vec2.clone()) * vectorScale;
+
+		threeVectorDot = drawVector(dir.x, dir.y, dir.z, length, new THREE.Color(0xc300ff));
+
+		scene.add(threeVectorDot);
+
+		threeVectorTipDot = drawTipOfVector(threeVectorDot);
+		scene.add(threeVectorTipDot);
+
+		threeVectorUpRefDot = drawReferenceLineToGroundPlane(threeVectorTipDot.position);
+		scene.add(threeVectorUpRefDot);
+
+		threeVectorTextDot = addVectorLabelAtTip(
+			threeVectorTipDot.position,
+			0.6,
+			'Scalar Projection',
+			'#666666'
+		);
+
+		if (threeVectorTipDot.position.length() > 0) {
+			scene.add(threeVectorTextDot);
+		}
 	}
 
 	function drawReferenceLineForScalar(
@@ -360,52 +401,59 @@
 
 	function addVectorLabelAtTip(
 		tipPosition: THREE.Vector3,
-		// scene: THREE.Scene,
-		offsetScalar = 0.6
+		offsetScalar: number = 0.6,
+		text: string | null = null,
+		color: string = '#666666'
 	): THREE.Sprite {
-		// Format the coordinates as a string
-		const posx = tipPosition.x / vectorScale;
-		const posy = tipPosition.y / vectorScale;
-		const posz = tipPosition.z / vectorScale;
-		const text = `${posx.toFixed(2)}, ${posy.toFixed(2)}, ${posz.toFixed(2)}`;
+		let labelText = text;
 
-		// Create the text sprite with the formatted coordinates
-		const textSprite = createTextSprite(text, '#666666', 64); // You can adjust color and size as needed
+		// Default text = vector coordinates
+		if (!labelText) {
+			const posx = tipPosition.x / vectorScale;
+			const posy = tipPosition.y / vectorScale;
+			const posz = tipPosition.z / vectorScale;
 
-		// Calculate direction and offset
+			labelText = `${posx.toFixed(2)}, ${posy.toFixed(2)}, ${posz.toFixed(2)}`;
+		}
+
+		const textSprite = createTextSprite(labelText, color, 64);
+
+		// Offset from vector tip
 		const direction = tipPosition.clone().normalize();
 		const offset = direction.multiplyScalar(offsetScalar);
 
-		// Set the position of the text sprite
 		textSprite.position.copy(tipPosition.clone().add(offset));
-
-		// Add the sprite to the scene
-		// scene.add(textSprite);
 
 		return textSprite;
 	}
 
-	function drawVector(x: number, y: number, z: number, scale: number = 1): THREE.Line {
+	function drawVector(
+		x: number,
+		y: number,
+		z: number,
+		scale: number = 1,
+		color: THREE.Color | null = null
+	): THREE.Line {
 		// Scale the vector
 		const scaledX = x * scale;
 		const scaledY = y * scale;
 		const scaledZ = z * scale;
 
 		// Create the points for the vector
-		const start = new THREE.Vector3(0, 0, 0); // Start at the origin
-		const end = new THREE.Vector3(scaledX, scaledY, scaledZ); // End at (x, y, z)
+		const start = new THREE.Vector3(0, 0, 0);
+		const end = new THREE.Vector3(scaledX, scaledY, scaledZ);
 
-		// Create geometry from points
+		// Geometry
 		const geometry = new THREE.BufferGeometry().setFromPoints([start, end]);
 
-		// Create material with color based on RGB values
+		// Use provided color or fallback to vector RGB
+		const finalColor = color ?? new THREE.Color(scaledX / scale, scaledY / scale, scaledZ / scale);
+
 		const material = new THREE.LineBasicMaterial({
-			color: new THREE.Color(scaledX / scale, scaledY / scale, scaledZ / scale) // Normalize RGB values
+			color: finalColor
 		});
 
-		// Create the line (vector) and return it
-		const line = new THREE.Line(geometry, material);
-		return line;
+		return new THREE.Line(geometry, material);
 	}
 
 	// Function to create the cone tip based on the vector
@@ -543,16 +591,19 @@
 		threeVectorText2 = addVectorLabelAtTip(threeVectorTip2.position);
 		if (threeVectorTip2.position.length() > 0) scene.add(threeVectorText2);
 
-		// test
+		// show angle
 		// -------------------------------------------------------------------------------
 		const vec1 = new THREE.Vector3(paneVector1.x, paneVector1.y, paneVector1.z);
 		const vec2 = new THREE.Vector3(paneVector2.x, paneVector2.y, paneVector2.z);
-		updateAngleArc(vec1, vec2); // ✅ uses removable version
+		updateAngleArc(vec1, vec2);
 		updateScalarProjectionLine(vec1, vec2);
-		// test end
+
+		// draw vector representing the dot products
 		// -------------------------------------------------------------------------------
+		// non existent on initial state
 
 		// Add ambient and directional lights for better visibility of models
+		// -------------------------------------------------------------------------------
 		const ambientLight = new THREE.AmbientLight(0xffffff, 0.3); // Adjust intensity as needed
 		scene.add(ambientLight);
 

@@ -43,7 +43,7 @@ P \implies (Q \lor \neg R)
 
 ### 3. Matrix and Systems of Equations (Display Mode)
 
-An example of a 2x2 matrix determinant.
+An example of a 4x4 matrix.
 
 <Katex expression={String.raw`
 \det(A) = \begin{vmatrix}
