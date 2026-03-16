@@ -1,1 +1,0 @@
-import{a as o,t as r}from"../chunks/disclose-version.DLbbaKQs.js";import"../chunks/legacy.6uWRKDwv.js";import{m as p,i as s}from"../chunks/runtime.CjwQjieB.js";const m="hello from $lib/message";var n=r("<h1>a deeply nested route</h1> <p></p>",1);function g(t){var e=n(),a=p(s(e),2);a.textContent=m,o(t,e)}export{g as component};

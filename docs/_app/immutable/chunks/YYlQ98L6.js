@@ -1,0 +1,1 @@
+import{l as y,b as o,m as _,h as t,o as g,C as m,q as a,d as i,c as d,u as p}from"./DSQyKW5-.js";function E(n,r){let s=null,f=t;var l;if(t){s=p;for(var e=g(document.head);e!==null&&(e.nodeType!==m||e.data!==n);)e=a(e);if(e===null)i(!1);else{var u=a(e);e.remove(),d(u)}}t||(l=document.head.appendChild(y()));try{o(()=>r(l),_)}finally{f&&(i(!0),d(s))}}export{E as h};
