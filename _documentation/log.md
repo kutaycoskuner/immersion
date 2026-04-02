@@ -54,6 +54,11 @@
     - step 2. movement from vector 1 to vector 2
 
 
+- [0.31.2] <wip gpu instancing custom shader>
+    - 20260402
+        - wip generating pixel instanced rendering
+        - restructure shaders, materials in folders
+
 - [0.31.1] <revision: pixel scene; rename others>
     - 20260402
         - fix naming issue for confusion on different scenes

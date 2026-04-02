@@ -1,6 +1,6 @@
 import {ShaderMaterial, Color } from 'three';
-import vertexShader from '$lib/shaders/_vrtx.glsl';
-import fragmentShader from '$lib/shaders/_frag.glsl';
+import vertexShader from '$lib/shaders/gridLines-vrtx.glsl';
+import fragmentShader from '$lib/shaders/gridLines-frag.glsl';
 
 // Define the material using Three.js ShaderMaterial
 export const fadingGridLines: ShaderMaterial = new ShaderMaterial({

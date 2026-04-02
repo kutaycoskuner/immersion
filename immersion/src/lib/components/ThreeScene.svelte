@@ -4,7 +4,7 @@
 	import { onMount, onDestroy } from 'svelte';
 	import * as THREE from 'three';
 	import { Pane } from 'tweakpane';
-	import { fadingGridLines, fadingXAxis, fadingYAxis } from '$lib/shaders/FadingGridLines.ts';
+	import { fadingGridLines, fadingXAxis, fadingYAxis } from '$lib/materials/gridLines.mat';
 	// import { infiniteAxes } from '$lib/shaders/InfiniteAxes.ts';
 	import { ViewportGizmo } from 'three-viewport-gizmo';
 	import { ViewportGizmoOptions } from '$lib/config/config-navigation_gizmo.ts';

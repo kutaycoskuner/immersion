@@ -2,9 +2,12 @@
 	import { onMount, onDestroy } from 'svelte';
 	import { base } from '$app/paths';
 	import * as THREE from 'three';
+	import { InstancedMesh, Object3D } from 'three';
+	import { InstancedBufferAttribute } from 'three';
 	import { Pane } from 'tweakpane';
-	import { fadingGridLines, fadingXAxis, fadingYAxis } from '$lib/shaders/FadingGridLines.ts';
-	// import { infiniteAxes } from '$lib/shaders/InfiniteAxes.ts';
+	import { fadingGridLines, fadingXAxis, fadingYAxis } from '$lib/materials/gridLines.mat';
+	import { groundMaterial } from '$lib/materials/ground.mat.ts';
+	import { instancedMaterial } from '$lib/materials/instanceQuad.mat.ts';
 	import { ViewportGizmo } from 'three-viewport-gizmo';
 	import { ViewportGizmoOptions } from '$lib/config/config-navigation_gizmo.ts';
 	import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
@@ -21,7 +24,6 @@
 
 	const loader = new GLTFLoader();
 
-
 	let currentTheme: string;
 	theme.themeStore.subscribe((value) => {
 		currentTheme = value;
@@ -29,7 +31,6 @@
 
 	// Reactive statement to call the function whenever `currentTheme` changes
 	$: currentTheme && updateSceneBackground();
-
 
 	modelStore.subscribe((value) => {
 		if (model) {
@@ -119,8 +120,6 @@
 		return line;
 	}
 
-
-
 	onMount(() => {
 		// Set up the scene
 		// -------------------------------------------------------------------------------
@@ -143,7 +142,7 @@
 		// Set up the camera
 		// -------------------------------------------------------------------------------
 		camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-		
+
 		// Set up the renderer
 		// -------------------------------------------------------------------------------
 		const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
@@ -155,7 +154,8 @@
 		gizmo.attachControls(controls);
 
 		// camera.position.set(-7.3, 5, 6.9);
-		camera.position.set(9.0, 10.0, 9.0);
+		// camera.position.set(0.0, 10.0, 9.0);
+		camera.position.set(0.0, 8.0, 16.0);
 		// camera.up.set(0, 0, 1);
 		camera.lookAt(0, 2.0, 0);
 
@@ -189,17 +189,60 @@
 		// -------------------------------------------------------------------------------
 		// test
 		// -------------------------------------------------------------------------------
-		// loader.load(
-		// 	`${base}/scenes/outliner-testscene/gltf/outliner-testscene.gltf`,
-		// 	(gltf) => {
-		// 		const model = gltf.scene;
-		// 		scene.add(model);
-		// 	},
-		// 	undefined,
-		// 	(error) => {
-		// 		console.error('Error loading GLTF:', error);
-		// 	}
-		// );
+
+		// step 1: create ground
+		const groundGeometry = new THREE.PlaneGeometry(20, 20, 1, 1);
+		const ground = new THREE.Mesh(groundGeometry, groundMaterial);
+		ground.rotation.x = -Math.PI / 2;
+		ground.position.y = 0;
+		// scene.add(ground);
+
+		// step 2: create the instance quad
+		const quadSize = 1.0;
+		const quadGeometry = new THREE.PlaneGeometry(quadSize, quadSize);
+
+		// step 3: generate points on ground to spawn quads
+		const groundSize = 20;
+		const quadCount = 500; // adjust how many small quads you want
+		const framePositions: THREE.Vector3[] = [];
+
+		for (let i = 0; i < quadCount; i++) {
+			const x = (Math.random() - 0.5) * groundSize; // -10 .. 10
+			const z = (Math.random() - 0.5) * groundSize;
+			framePositions.push(new THREE.Vector3(x, quadSize / 3.0, z)); // slightly above ground
+		}
+		// // DEBUG: print first 10 positions
+		// console.log('Random frame positions (first 10):');
+		// framePositions.slice(0, 10).forEach((p, idx) => {
+		// 	console.log(`Frame ${idx}: x=${p.x.toFixed(2)}, y=${p.y.toFixed(2)}, z=${p.z.toFixed(2)}`);
+		// });
+
+		// step 4: instance mesh	
+		const instanceMatrices = new Float32Array(quadCount * 16);
+
+		const mat = new THREE.MeshPhongMaterial({ color: 0x00ff00 });
+		const instancedMesh = new InstancedMesh(quadGeometry, instancedMaterial, quadCount);
+		
+		framePositions.forEach((pos, i) => {
+			const mat = new THREE.Matrix4();
+			mat.setPosition(pos);
+			mat.toArray(instanceMatrices, i * 16);
+		});
+
+		quadGeometry.setAttribute('instanceMatrix', new InstancedBufferAttribute(instanceMatrices, 16));
+
+		scene.add(instancedMesh);
+
+		const tempInstanceObj = new Object3D();
+
+		framePositions.forEach((pos, i) => {
+			tempInstanceObj.position.copy(pos);
+			tempInstanceObj.rotation.set(0, 0, 0); // reset rotation
+			tempInstanceObj.scale.set(1, 1, 1); // reset scale
+			tempInstanceObj.updateMatrix(); // important!
+			instancedMesh.setMatrixAt(i, tempInstanceObj.matrix);
+		});
+
 		// -------------------------------------------------------------------------------
 		// test end
 		// -------------------------------------------------------------------------------
@@ -274,9 +317,7 @@
 		};
 	});
 
-	onDestroy(() => {
-
-	});
+	onDestroy(() => {});
 </script>
 
 <canvas bind:this={canvas} style="display: block; margin: 0; padding: 0; overflow: hidden;"
