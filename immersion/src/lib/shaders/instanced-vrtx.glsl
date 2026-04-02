@@ -1,10 +1,10 @@
-uniform mat4 modelMatrix;
-uniform mat4 viewMatrix;
-uniform mat4 projectionMatrix;
-attribute vec3 position;
-attribute mat4 instanceMatrix; // automatically available in InstancedMesh
+precision highp float;
+
+attribute vec3 instancePos;
+
 
 void main() {
-    vec4 worldPosition = instanceMatrix * vec4(position, 1.0);
+    // transform vertex by instanceMatrix
+    vec4 worldPosition = vec4(position + instancePos, 1.0);
     gl_Position = projectionMatrix * viewMatrix * worldPosition;
 }

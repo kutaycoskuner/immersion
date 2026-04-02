@@ -74,6 +74,17 @@
 
 
 
+# blackboard
+- shaders
+    - inputs
+        - uniforms:
+            - global inputs
+            - attributes: 
+                - part of mesh data, matrices positions scales etc.
+                - only accessible by vrtx
+            - varying
+                - communication between vrtx - frag
+
 # how to 
 - <clean install pnpm>
     > cd immersion

@@ -195,7 +195,7 @@
 		const ground = new THREE.Mesh(groundGeometry, groundMaterial);
 		ground.rotation.x = -Math.PI / 2;
 		ground.position.y = 0;
-		// scene.add(ground);
+		scene.add(ground);
 
 		// step 2: create the instance quad
 		const quadSize = 1.0;
@@ -204,45 +204,36 @@
 		// step 3: generate points on ground to spawn quads
 		const groundSize = 20;
 		const quadCount = 500; // adjust how many small quads you want
-		const framePositions: THREE.Vector3[] = [];
+		const instancePositions: THREE.Vector3[] = [];
 
 		for (let i = 0; i < quadCount; i++) {
 			const x = (Math.random() - 0.5) * groundSize; // -10 .. 10
 			const z = (Math.random() - 0.5) * groundSize;
-			framePositions.push(new THREE.Vector3(x, quadSize / 3.0, z)); // slightly above ground
+			instancePositions.push(new THREE.Vector3(x, quadSize / 3.0, z)); // slightly above ground
 		}
-		// // DEBUG: print first 10 positions
+		// debug: print first 10 positions
 		// console.log('Random frame positions (first 10):');
 		// framePositions.slice(0, 10).forEach((p, idx) => {
 		// 	console.log(`Frame ${idx}: x=${p.x.toFixed(2)}, y=${p.y.toFixed(2)}, z=${p.z.toFixed(2)}`);
 		// });
 
-		// step 4: instance mesh	
-		const instanceMatrices = new Float32Array(quadCount * 16);
-
-		const mat = new THREE.MeshPhongMaterial({ color: 0x00ff00 });
+		// step 4: instance mesh
 		const instancedMesh = new InstancedMesh(quadGeometry, instancedMaterial, quadCount);
-		
-		framePositions.forEach((pos, i) => {
-			const mat = new THREE.Matrix4();
-			mat.setPosition(pos);
-			mat.toArray(instanceMatrices, i * 16);
+		const offsets: number[] = [];
+		instancePositions.forEach((pos, i) => {
+			offsets.push(pos.x, pos.y, pos.z);
 		});
-
-		quadGeometry.setAttribute('instanceMatrix', new InstancedBufferAttribute(instanceMatrices, 16));
+		instancedMesh.geometry.setAttribute(
+			'instancePos',
+			new THREE.InstancedBufferAttribute(new Float32Array(offsets), 3)
+		);
+		// if you modify the array later, mark it as needing update
+		(
+			instancedMesh.geometry.getAttribute('instancePos') as THREE.InstancedBufferAttribute
+		).needsUpdate = true;
 
 		scene.add(instancedMesh);
-
-		const tempInstanceObj = new Object3D();
-
-		framePositions.forEach((pos, i) => {
-			tempInstanceObj.position.copy(pos);
-			tempInstanceObj.rotation.set(0, 0, 0); // reset rotation
-			tempInstanceObj.scale.set(1, 1, 1); // reset scale
-			tempInstanceObj.updateMatrix(); // important!
-			instancedMesh.setMatrixAt(i, tempInstanceObj.matrix);
-		});
-
+		
 		// -------------------------------------------------------------------------------
 		// test end
 		// -------------------------------------------------------------------------------
