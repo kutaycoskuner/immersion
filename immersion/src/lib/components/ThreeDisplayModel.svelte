@@ -189,17 +189,17 @@
 		// -------------------------------------------------------------------------------
 		// test
 		// -------------------------------------------------------------------------------
-		// loader.load(
-		// 	`${base}/scenes/outliner-testscene/gltf/outliner-testscene.gltf`,
-		// 	(gltf) => {
-		// 		const model = gltf.scene;
-		// 		scene.add(model);
-		// 	},
-		// 	undefined,
-		// 	(error) => {
-		// 		console.error('Error loading GLTF:', error);
-		// 	}
-		// );
+		loader.load(
+			`${base}/scenes/outliner-testscene/gltf/outliner-testscene.gltf`,
+			(gltf) => {
+				const model = gltf.scene;
+				scene.add(model);
+			},
+			undefined,
+			(error) => {
+				console.error('Error loading GLTF:', error);
+			}
+		);
 		// -------------------------------------------------------------------------------
 		// test end
 		// -------------------------------------------------------------------------------

@@ -54,6 +54,10 @@
     - step 2. movement from vector 1 to vector 2
 
 
+- [0.31.1] <revision: pixel scene; rename others>
+    - 20260402
+        - fix naming issue for confusion on different scenes
+
 - [0.31] <added keyframe animation test scene>
     - 20260320
         - added keyframe animation test scene

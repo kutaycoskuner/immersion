@@ -1,5 +1,5 @@
 <script>
-	import ThreePixelShader from '$lib/components/ThreeKeyframe.svelte'; 
+	import ThreeKeyFrame from '$lib/components/ThreeKeyframe.svelte'; 
 	import { onMount, onDestroy } from 'svelte';
 
 	onMount(() => {
@@ -15,7 +15,7 @@
 
 <main style="margin: 0; padding: 0; overflow: hidden;">
 	<!-- Include ThreeScene component inside the page -->
-	<ThreePixelShader/>
+	<ThreeKeyFrame/>
 </main>
 
 <style>

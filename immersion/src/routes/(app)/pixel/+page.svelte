@@ -1,5 +1,5 @@
 <script>
-	import ThreeDisplayModel from '$lib/components/ThreeDisplayModel.svelte'; 
+	import ThreePixelShader from '$lib/components/ThreePixelShader.svelte'; 
 	import { onMount, onDestroy } from 'svelte';
 
 	onMount(() => {
@@ -15,7 +15,7 @@
 
 <main style="margin: 0; padding: 0; overflow: hidden;">
 	<!-- Include ThreeScene component inside the page -->
-	<ThreeDisplayModel/>
+	<ThreePixelShader/>
 </main>
 
 <style>

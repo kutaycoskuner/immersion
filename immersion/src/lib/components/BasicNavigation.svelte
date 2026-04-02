@@ -9,7 +9,8 @@
 	<a href="{base}/">vectors</a>
 	<a href="{base}/unfolding">unfolding cube</a>
 	<a href="{base}/import_gltf">display model</a>
-	<a href="{base}/keyframe">keyframe animation</a>
+	<a href="{base}/keyframe">motion animation</a>
+	<a href="{base}/pixel">pixel shader</a>
 
 	<!-- <a href="{base}/about">about</a> -->
 	<!-- <a href="{base}/blog">blog</a> -->
