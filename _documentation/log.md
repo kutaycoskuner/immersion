@@ -54,6 +54,10 @@
     - step 2. movement from vector 1 to vector 2
 
 
+- [0.31.4] <refactor project: removed folder isolation>
+    - 20260403
+        - folder up
+
 - [0.31.3] <fixed instance positions problem on custom shader>
     - 20260402
         - fixed problem with custom shader instanced positions
