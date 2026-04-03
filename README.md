@@ -15,6 +15,13 @@
     <img alt="dev last update" src="https://img.shields.io/github/last-commit/kutaycoskuner/immersion/dev" />
 </p>
 
+
+<p align="center">
+    <img src="_display/v0.31.5-billboarding.gif" />
+    <br>
+    <sub><i> v0.31.5 billboarding and alpha textures on custom shaders </i></sub>
+</p>
+
 <p align="center">
     <img src="_display/v0.23-vector_control_on_ui.gif" />
     <br>

@@ -30,7 +30,9 @@
 	});
 
 	// Reactive statement to call the function whenever `currentTheme` changes
-	$: currentTheme && updateSceneBackground();
+	$: if (typeof window !== 'undefined' && currentTheme) {
+		updateSceneBackground();
+	}
 
 	modelStore.subscribe((value) => {
 		if (model) {
@@ -195,15 +197,15 @@
 		const ground = new THREE.Mesh(groundGeometry, groundMaterial);
 		ground.rotation.x = -Math.PI / 2;
 		ground.position.y = 0;
-		scene.add(ground);
+		// scene.add(ground);
 
 		// step 2: create the instance quad
-		const quadSize = 1.0;
+		const quadSize = 0.5;
 		const quadGeometry = new THREE.PlaneGeometry(quadSize, quadSize);
 
 		// step 3: generate points on ground to spawn quads
 		const groundSize = 20;
-		const quadCount = 500; // adjust how many small quads you want
+		const quadCount = 1000; // adjust how many small quads you want
 		const instancePositions: THREE.Vector3[] = [];
 
 		for (let i = 0; i < quadCount; i++) {
@@ -233,7 +235,7 @@
 		).needsUpdate = true;
 
 		scene.add(instancedMesh);
-		
+
 		// -------------------------------------------------------------------------------
 		// test end
 		// -------------------------------------------------------------------------------

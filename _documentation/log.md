@@ -54,6 +54,12 @@
     - step 2. movement from vector 1 to vector 2
 
 
+- [0.31.5] <added bilboarding and alpha textures on quads>
+    - 20260403
+        - update readme
+        - added alpha and texture on quads
+        - added billboarding on quads
+
 - [0.31.4] <refactor project: removed folder isolation>
     - 20260403
         - folder up
