@@ -54,6 +54,12 @@
     - step 2. movement from vector 1 to vector 2
 
 
+- [0.31.6] <wind sway animation test>
+    - 20260403  
+        - structured vrtx shader
+        - added wind sway animation
+        - fixed document bug
+
 - [0.31.5] <added bilboarding and alpha textures on quads>
     - 20260403
         - update readme

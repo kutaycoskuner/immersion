@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onMount, onDestroy } from 'svelte';
 	import { base } from '$app/paths';
+	import { browser } from '$app/environment';
 	import * as THREE from 'three';
 	import { InstancedMesh, Object3D } from 'three';
 	import { InstancedBufferAttribute } from 'three';
@@ -67,12 +68,14 @@
 		updateGridColor(currentTheme);
 	}
 
+	// function getCSSVariable(variableName: string): string {
+	// 	if (!browser) return '';
+	// 	return getComputedStyle(document.documentElement).getPropertyValue(variableName).trim();
+	// }
+
 	function getCSSVariable(variableName: string): string {
-		if (typeof window !== 'undefined') {
-			return getComputedStyle(document.documentElement).getPropertyValue(variableName).trim();
-		}
-		console.log('window not found.');
-		return ''; // Fallback for non-browser environments
+		if (!browser) return '';
+		return getComputedStyle(document.documentElement).getPropertyValue(variableName).trim();
 	}
 
 	function adaptCSSColor(color: string): string {
@@ -126,6 +129,7 @@
 		// Set up the scene
 		// -------------------------------------------------------------------------------
 		scene = new THREE.Scene();
+		const clock = new THREE.Clock();
 		// scene.background = new THREE.Color(0xffffff);
 
 		// setting up color theme on init
@@ -192,12 +196,16 @@
 		// test
 		// -------------------------------------------------------------------------------
 
+		const loader = new THREE.TextureLoader();
+		const texture = loader.load('/textures/grassblades02-alpha-128.png');
+		instancedMaterial.uniforms.uMap.value = texture;
+
 		// step 1: create ground
 		const groundGeometry = new THREE.PlaneGeometry(20, 20, 1, 1);
 		const ground = new THREE.Mesh(groundGeometry, groundMaterial);
 		ground.rotation.x = -Math.PI / 2;
 		ground.position.y = 0;
-		// scene.add(ground);
+		scene.add(ground);
 
 		// step 2: create the instance quad
 		const quadSize = 0.5;
@@ -287,6 +295,8 @@
 		// Animation loop
 		function animate() {
 			requestAnimationFrame(animate);
+
+			instancedMaterial.uniforms.uTime.value = clock.getElapsedTime();
 
 			renderer.render(scene, camera);
 			controls.update();

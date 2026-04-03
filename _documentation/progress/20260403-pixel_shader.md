@@ -16,8 +16,22 @@
     - billboarding / axis aligned billboarding 
     - normal of quad should face to opposite of camera direction
 
-- [x] add image and alpha to quad
+- [x] gpu/cpu: add image and alpha to quad
     - added two textures from apprentice
     - texture u material uzerinden eklmedim
     - gorselde alpha oldugundan emin degildim photoshopta alpha channel ekleyip kontrol ettim
     - vrtx uv > frag: fragmentta alpha pass
+    - problem: document not defined 
+        - solution: texture importu sahne icine aldim
+
+- [ ] gpu: animating grass
+    - 
+
+- [ ] pixelation 
+    - 
+
+- [ ] light interaction
+
+- [ ] outlines
+
+- [ ] pseudo-isometric camera

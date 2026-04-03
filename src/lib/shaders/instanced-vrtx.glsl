@@ -2,6 +2,8 @@ precision highp float;
 
 attribute vec3 instancePos;
 
+uniform float uTime;
+
 varying vec2 vUv;
 
 void main() {
@@ -9,6 +11,9 @@ void main() {
     // pass to fragment directly
     vUv = uv;
 
+    // -----------------------------
+    // billboarding
+    // -----------------------------
     // ----- based on camera but ignore pitch (y-axis rotation)
     // camera forward direction in world space
     vec3 camForward = normalize(vec3(
@@ -36,5 +41,22 @@ void main() {
         right * position.x +
         up * position.y;
 
+    // -----------------------------
+    // grass sway animation
+    // -----------------------------
+
+    // float heightMask = vUv.y;          // 0 bottom, 1 top
+    // float windStrength = 0.08;
+
+    // float wind =
+    //     sin(uTime * 2.0 + instancePos.x * 0.5 + instancePos.z * 0.5)
+    //     * windStrength;
+
+    // worldPos += right * wind * heightMask;
+
+
+    // -----------------------------
+    // apply matrices
+    // -----------------------------
     gl_Position = projectionMatrix * viewMatrix * vec4(worldPos, 1.0);
 }
