@@ -5,11 +5,10 @@ attribute vec3 instancePos;
 uniform float uTime;
 
 varying vec2 vUv;
+varying vec3 vWorldPos;
+varying vec3 vNormal;
 
 void main() {
-
-    // pass to fragment directly
-    vUv = uv;
 
     // -----------------------------
     // billboarding
@@ -56,7 +55,18 @@ void main() {
 
 
     // -----------------------------
+    // pass to fragment directly
+    // -----------------------------
+    vUv = uv;
+    vNormal = normalize(mat3(modelMatrix) * normal);
+    vec4 worldPosition = modelMatrix * vec4(position + instancePos, 1.0);
+    vWorldPos = worldPosition.xyz;
+    // vWorldPos = (modelMatrix * vec4(position, 1.0)).xyz; // world position
+
+
+    // -----------------------------
     // apply matrices
     // -----------------------------
     gl_Position = projectionMatrix * viewMatrix * vec4(worldPos, 1.0);
+    // gl_Position = projectionMatrix * viewMatrix * worldPosition;
 }

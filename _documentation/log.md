@@ -54,6 +54,13 @@
     - step 2. movement from vector 1 to vector 2
 
 
+- [0.31.7] <added pixel scene: light interaction; texture on ground> 
+    - 20260404
+        - wip: passing color of ground to grass
+        - added texture for ground color
+        - added light inteaction on ground
+        - added point lights 
+
 - [0.31.6] <wind sway animation test>
     - 20260403  
         - structured vrtx shader

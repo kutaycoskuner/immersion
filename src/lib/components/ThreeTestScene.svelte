@@ -4,11 +4,13 @@
 	import { browser } from '$app/environment';
 	import * as THREE from 'three';
 	import { InstancedMesh, Object3D } from 'three';
+	import { ShaderMaterial, DoubleSide, Vector3, Color } from 'three';
+
 	import { InstancedBufferAttribute } from 'three';
 	import { Pane } from 'tweakpane';
 	import { fadingGridLines, fadingXAxis, fadingYAxis } from '$lib/materials/gridLines.mat';
 	import { groundMaterial } from '$lib/materials/ground.mat.ts';
-	import { instancedMaterial } from '$lib/materials/instanceQuad.mat.ts';
+	// import { instancedMaterial } from '$lib/materials/instanceQuad.mat.ts';
 	import { ViewportGizmo } from 'three-viewport-gizmo';
 	import { ViewportGizmoOptions } from '$lib/config/config-navigation_gizmo.ts';
 	import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
@@ -22,6 +24,9 @@
 	let renderer: THREE.WebGLRenderer;
 	let keyStates: { [key: string]: boolean } = {};
 	let model: THREE.Object3D | null = null;
+
+	import vertexShader from '$lib/shaders/instanced-vrtx.glsl?raw';
+	import fragmentShader from '$lib/shaders/instanced-frag.glsl?raw';
 
 	const loader = new GLTFLoader();
 
@@ -197,23 +202,20 @@
 		// -------------------------------------------------------------------------------
 
 		const loader = new THREE.TextureLoader();
-		const tex_instancedQuad = loader.load('/textures/grassblades02-alpha-128.png');
-		const tex_ground = loader.load('/textures/heightmap03-green-2k.png');
-		instancedMaterial.uniforms.uMap.value = tex_instancedQuad;
-		instancedMaterial.uniforms.uGroundTex.value = tex_ground;
-		groundMaterial.uniforms.uMap.value = tex_ground;
-
+		const texture = loader.load('/textures/grassblades02-alpha-128.png');
+		// instancedMaterial.uniforms.uMap.value = texture;
 
 		// step 0: add point light
+
+		// add ambient light
+		const ambientLight = new THREE.AmbientLight(0xffffff, 0.3); // intensity 0.3
+		scene.add(ambientLight);
+
 		// point light
 		const pointLight = new THREE.PointLight(0xffffff, 2, 30);
 		pointLight.position.set(3, 3, 0);
 		pointLight.intensity = 8;
 		scene.add(pointLight);
-
-		// Add ambient and directional lights for better visibility of models
-		const ambientLight = new THREE.AmbientLight(0xffffff, 0.1);
-		scene.add(ambientLight);
 
 		// optional visual helper
 		const lightSphere = new THREE.Mesh(
@@ -250,7 +252,27 @@
 		// });
 
 		// step 4: instance mesh
+		const instancedMaterial = new ShaderMaterial({
+			vertexShader: vertexShader,
+			fragmentShader: fragmentShader,
+			transparent: false,
+			lights: true,
+			// depthWrite: false,
+			side: DoubleSide, // Single / Double Side
+			uniforms: {
+				uMap: { value: null },
+				uTime: { value: 0 },
+				uPointLightPos: { value: new Vector3(0, 10, 0) },
+				uPointLightColor: { value: new Color(1, 1, 1) },
+				uAmbient: { value: new Color(0.2, 0.2, 0.2) }
+				// uColor: { value: new Color(0x00ff00) } // light gray default
+			}
+		});
+		instancedMaterial.uniforms.uMap.value = texture;
+		instancedMaterial.lights = true;
+		instancedMaterial.needsUpdate = true; // forces uniform injection
 		const instancedMesh = new InstancedMesh(quadGeometry, instancedMaterial, quadCount);
+		console.log(instancedMaterial.lights);
 		const offsets: number[] = [];
 		instancePositions.forEach((pos, i) => {
 			offsets.push(pos.x, pos.y, pos.z);
@@ -304,6 +326,10 @@
 		// test end
 		// -------------------------------------------------------------------------------
 
+		// Add ambient and directional lights for better visibility of models
+		// const ambientLight = new THREE.AmbientLight(0xffffff, 0.3); // Adjust intensity as needed
+		// scene.add(ambientLight);
+
 		// const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
 		// directionalLight.position.set(10, 10, 10);
 		// scene.add(directionalLight);
@@ -349,10 +375,8 @@
 			const time = clock.getElapsedTime();
 			requestAnimationFrame(animate);
 
-			groundMaterial.uniforms.uPointLightPos.value.copy(pointLight.position);
-			groundMaterial.uniforms.uPointLightColor.value.copy(pointLight.color);
-			// groundMaterial.uniforms.uAmbient.value.copy(ambientLight.color);
 			instancedMaterial.uniforms.uTime.value = clock.getElapsedTime();
+
 			// rotate point light
 			const radius = 3;
 			pointLight.position.x = Math.cos(time) * radius;
