@@ -23,6 +23,11 @@
 	let keyStates: { [key: string]: boolean } = {};
 	let model: THREE.Object3D | null = null;
 
+
+	// todo: remove sometime
+	const isProd = import.meta.env.MODE === 'production';
+  	console.log('Running in production?', isProd);
+
 	const loader = new GLTFLoader();
 
 	let currentTheme: string;
@@ -197,9 +202,9 @@
 		// -------------------------------------------------------------------------------
 
 		const loader = new THREE.TextureLoader();
-		const tex_instancedQuad = loader.load('/textures/grassblades02-alpha-128.png');
+		const tex_instancedQuad = loader.load(`${base}/textures/grassblades02-alpha-128.png`);
+		const tex_ground        = loader.load(`${base}/textures/heightmap01-1k.png`);
 		tex_instancedQuad.anisotropy = renderer.capabilities.getMaxAnisotropy();
-		const tex_ground = loader.load('/textures/heightmap01-1k.png');
 		// const tex_ground = loader.load('/textures/test01-4color-128.png');
 		instancedMaterial.uniforms.uMap.value = tex_instancedQuad;
 		instancedMaterial.uniforms.uGroundTex.value = tex_ground;
@@ -231,7 +236,7 @@
 		scene.add(ground);
 
 		// step 2: create the instance quad
-		const quadSize = 0.3;
+		const quadSize = 0.6;
 		const quadGeometry = new THREE.PlaneGeometry(quadSize, quadSize);
 
 		// step 3: generate points on ground to spawn quads
