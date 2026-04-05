@@ -6,7 +6,7 @@ uniform vec3 uAmbient;
 uniform vec3 uGrassTint;
 
 uniform sampler2D uMap;
-uniform sampler2D uGroundTex;
+varying vec3 vGroundColor;
 
 varying vec2 vUv;
 varying vec3 vNormal;
@@ -16,24 +16,26 @@ void main() {
 
     vec4 tex = texture2D(uMap, vUv);
     // discard fully transparent pixels
-    if(tex.a < 0.4) discard;
+    if(tex.a < 0.5) discard;
 
-    // sample ground color using world position
-    float groundHalfSize = 10.0;
-    vec2 groundUV = (vWorldPos.xz + groundHalfSize) / (groundHalfSize * 2.0);
-    vec3 groundColor = texture2D(uGroundTex, groundUV).rgb;
-
-     // combine grass tint with ground variation
-    vec3 baseColor = groundColor;
+    // terrain color
+    vec3 baseColor = vGroundColor;
 
     // lighting
     vec3 lightDir = normalize(uPointLightPos - vWorldPos);
     float diff = max(dot(normalize(vNormal), lightDir), 0.0);
+    vec3 lighting = diff * uPointLightColor + uAmbient;
 
-    vec3 finalColor = baseColor * (diff * uPointLightColor + uAmbient);;
+    vec3 illumination = baseColor * lighting;
 
 
-    gl_FragColor = vec4(baseColor, tex.a);
-    // gl_FragColor = vec4(fract(vWorldPos * 0.1),1.0);
-    // gl_FragColor = vec4(fract(vWorldPos.x * 0.1), fract(vWorldPos.z * 0.1), 0.0, 1.0);
+    // base color test
+    // gl_FragColor = vec4(baseColor, 1.0);
+
+    // lighting test
+    // gl_FragColor = vec4(lighting, tex.a);
+
+        // lighting test
+    gl_FragColor = vec4(illumination, tex.a);
+
 }

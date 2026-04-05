@@ -13,12 +13,13 @@ export const instancedMaterial = new ShaderMaterial({
 		uMap: { value: null }, 						// leaf texture
 		uGroundTex: { value: null }, 				// ground/cloud texture
 
+		uGroundHalfSize: {value: 10},
 		uTime: { value: 0 },
 
-		uPointLightPos: { value: new Vector3() },
+		uPointLightPos: { value: new Vector3(0, 10, 0) },   
 		uPointLightColor: { value: new Color(1, 1, 1) },
-		uAmbient: { value: new Color(0.2, 0.2, 0.2) },
-
+		uAmbient: { value: new Color(0.1, 0.1, 0.1) },
+		
 		uGrassTint: { value: new Color(0.4, 1.0, 0.4) }
 	}
 });

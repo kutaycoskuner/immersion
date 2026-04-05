@@ -198,11 +198,12 @@
 
 		const loader = new THREE.TextureLoader();
 		const tex_instancedQuad = loader.load('/textures/grassblades02-alpha-128.png');
-		const tex_ground = loader.load('/textures/heightmap03-green-2k.png');
+		tex_instancedQuad.anisotropy = renderer.capabilities.getMaxAnisotropy();
+		const tex_ground = loader.load('/textures/heightmap01-1k.png');
+		// const tex_ground = loader.load('/textures/test01-4color-128.png');
 		instancedMaterial.uniforms.uMap.value = tex_instancedQuad;
 		instancedMaterial.uniforms.uGroundTex.value = tex_ground;
 		groundMaterial.uniforms.uMap.value = tex_ground;
-
 
 		// step 0: add point light
 		// point light
@@ -230,18 +231,22 @@
 		scene.add(ground);
 
 		// step 2: create the instance quad
-		const quadSize = 0.5;
+		const quadSize = 0.3;
 		const quadGeometry = new THREE.PlaneGeometry(quadSize, quadSize);
 
 		// step 3: generate points on ground to spawn quads
-		const groundSize = 20;
-		const quadCount = 1000; // adjust how many small quads you want
+		const groundSize: number = 20.0;
+		// instancedMaterial.uniforms.uGroundHalfSize.value = groundSize / 2.0;
+		const quadCount = 2800; // adjust how many small quads you want
 		const instancePositions: THREE.Vector3[] = [];
 
 		for (let i = 0; i < quadCount; i++) {
 			const x = (Math.random() - 0.5) * groundSize; // -10 .. 10
 			const z = (Math.random() - 0.5) * groundSize;
-			instancePositions.push(new THREE.Vector3(x, quadSize / 3.0, z)); // slightly above ground
+			// slightly above ground
+			instancePositions.push(new THREE.Vector3(x, quadSize / 6.0, z)); 
+			// instancePositions.push(new THREE.Vector3(x, 0.0, z)); 
+
 		}
 		// debug: print first 10 positions
 		// console.log('Random frame positions (first 10):');
@@ -351,6 +356,9 @@
 
 			groundMaterial.uniforms.uPointLightPos.value.copy(pointLight.position);
 			groundMaterial.uniforms.uPointLightColor.value.copy(pointLight.color);
+			
+			instancedMaterial.uniforms.uPointLightPos.value.copy(pointLight.position);
+			instancedMaterial.uniforms.uPointLightColor.value.copy(pointLight.color);
 			// groundMaterial.uniforms.uAmbient.value.copy(ambientLight.color);
 			instancedMaterial.uniforms.uTime.value = clock.getElapsedTime();
 			// rotate point light

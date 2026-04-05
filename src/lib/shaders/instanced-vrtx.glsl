@@ -2,11 +2,14 @@ precision highp float;
 
 attribute vec3 instancePos;
 
+uniform sampler2D uGroundTex;
 uniform float uTime;
+uniform float uGroundHalfSize;
 
 varying vec2 vUv;
 varying vec3 vWorldPos;
 varying vec3 vNormal;
+varying vec3 vGroundColor;
 
 void main() {
 
@@ -22,17 +25,18 @@ void main() {
     ));
 
     // remove pitch (ignore Y)
-    camForward.y = 0.0;
+    // camForward.y = 0.0;
     camForward = normalize(camForward);
 
     // build billboard basis
-    vec3 right = normalize(cross(vec3(0.0, 1.0, 0.0), camForward));
-    vec3 up = vec3(0.0, 1.0, 0.0);
+    // vec3 right = normalize(cross(vec3(0.0, 1.0, 0.0), camForward));
+    // vec3 up = vec3(0.0, 1.0, 0.0);
 
 
     // ----- based on camera
-    // vec3 right = vec3(viewMatrix[0][0], viewMatrix[1][0], viewMatrix[2][0]);
-    // vec3 up    = vec3(viewMatrix[0][1], viewMatrix[1][1], viewMatrix[2][1]);
+    vec3 worldUp = vec3(0.0, 1.0, 0.0);
+    vec3 right = normalize(cross(worldUp, camForward));
+    vec3 up = normalize(cross(camForward, right));
 
     // construct vertex
     vec3 worldPos =
@@ -41,26 +45,52 @@ void main() {
         up * position.y;
 
     // -----------------------------
-    // grass sway animation
-    // -----------------------------
-
-    // float heightMask = vUv.y;          // 0 bottom, 1 top
-    // float windStrength = 0.08;
-
-    // float wind =
-    //     sin(uTime * 2.0 + instancePos.x * 0.5 + instancePos.z * 0.5)
-    //     * windStrength;
-
-    // worldPos += right * wind * heightMask;
-
-
-    // -----------------------------
-    // pass to fragment directly
+    // pass to fragment directly 1
     // -----------------------------
     vUv = uv;
-    vNormal = normalize(mat3(modelMatrix) * normal);
-    vec4 worldPosition = modelMatrix * vec4(position + instancePos, 1.0);
-    vWorldPos = worldPosition.xyz;
+
+    // -----------------------------
+    // grass sway animation
+    // -----------------------------
+    float heightMask = vUv.y;          // 0 bottom, 1 top
+    float windStrength = .02;
+
+    float wind =
+        sin(uTime * 2.0 + instancePos.x * 0.5 + instancePos.z * 0.5)
+        * windStrength;
+
+    worldPos += right * wind * heightMask;
+
+    // -----------------------------
+    // sample ground texture once per blade
+    // -----------------------------
+    float groundSize = uGroundHalfSize * 2.0;
+
+    // uv
+    // (0,1) ----------- (1,1)
+    // |                 |
+    // |                 |
+    // |                 |
+    // (0,0) ----------- (1,0)
+    vec2 groundUV = (instancePos.xz + uGroundHalfSize) / groundSize;
+    groundUV.y = 1.0 - groundUV.y;
+
+    vGroundColor = texture2D(uGroundTex, groundUV).rgb;
+
+
+    // -----------------------------
+    // pass to fragment directly 2
+    // -----------------------------
+    // vNormal = normalize(mat3(modelMatrix) * normal);
+    vNormal = vec3(0.0, 1.0, 0.0);
+    // vNormal = normalize(cross(right, up));
+
+    vWorldPos = worldPos;
+
+
+    // -----------------------------
+    // calculate position
+    // -----------------------------
     // vWorldPos = (modelMatrix * vec4(position, 1.0)).xyz; // world position
 
 
@@ -68,5 +98,4 @@ void main() {
     // apply matrices
     // -----------------------------
     gl_Position = projectionMatrix * viewMatrix * vec4(worldPos, 1.0);
-    // gl_Position = projectionMatrix * viewMatrix * worldPosition;
 }
