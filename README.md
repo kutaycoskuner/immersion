@@ -11,8 +11,21 @@
     <img alt="Node.js" src="https://img.shields.io/badge/Node.js-22.12.0-green?logo=node.js&logoColor=white" />
     <img alt="Three.js" src="https://img.shields.io/badge/Three.js-0.172.0-black?logo=three.js&logoColor=white" />
     <img alt="Yarn" src="https://img.shields.io/badge/Yarn-1.22.22-blue?logo=yarn&logoColor=white" />
-    <img alt="Version" src="https://img.shields.io/badge/Version-0.26.1-blue" />
+    <img alt="Version" src="https://img.shields.io/badge/Version-0.32.0-blue" />
     <img alt="dev last update" src="https://img.shields.io/github/last-commit/kutaycoskuner/immersion/dev" />
+</p>
+
+
+<p align="center">
+    <img src="_display/v0.32-pixel_light.gif" />
+    <br>
+    <sub><i> v0.32 Pixel scene light interaction </i></sub>
+</p>
+
+<p align="center">
+    <img src="_display/v0.31.5-billboarding.gif" />
+    <br>
+    <sub><i> v0.31.5 billboarding and alpha textures on custom shaders </i></sub>
 </p>
 
 <p align="center">
