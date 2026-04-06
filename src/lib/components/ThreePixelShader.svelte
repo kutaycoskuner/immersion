@@ -370,7 +370,7 @@
 			const radius = 3;
 			pointLight.position.x = Math.cos(time) * radius;
 			pointLight.position.z = Math.sin(time) * radius;
-			// pointLight.position.y = 3 + Math.sin(time * 1.0);
+			pointLight.position.y = 3 + Math.sin(time * 1.0);
 
 			renderer.render(scene, camera);
 

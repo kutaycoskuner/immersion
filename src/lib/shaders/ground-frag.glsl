@@ -9,21 +9,38 @@ varying vec2 vUv;
 varying vec3 vNormal;
 varying vec3 vWorldPos;
 
+vec3 quantizeColor(vec3 color, float levels) {
+    return floor(color * levels) / levels;
+}
 
 void main() {
-    // Lighting
-    vec3 lightDir = normalize(uPointLightPos - vWorldPos);
-    float diff = max(dot(vNormal, lightDir), 0.0);
-    vec3 litColor = (diff * uPointLightColor + uAmbient);
 
-    // Texture
-    vec4 tex = texture2D(uMap, vUv);
+    // variables
+    // ----------------------------------------------------------
+    float quantizationLevels = 5.0;
 
-    // Mix lighting and texture
-    vec3 finalColor = litColor * tex.xyz;
+    // lighting parameters calculation
+    // ----------------------------------------------------------
+    vec3    lightDir = normalize(uPointLightPos - vWorldPos);
+    float   diffuse = max(dot(vNormal, lightDir), 0.0);
+    vec3    lighting = (diffuse * uPointLightColor + uAmbient);
 
-    gl_FragColor = vec4(finalColor, 1.0);
+    // sample base color
+    // ----------------------------------------------------------
+    vec4    baseColor = texture2D(uMap, vUv);
 
+
+
+    // quantize lighting
+    // ----------------------------------------------------------
+    vec3 qLighting = quantizeColor(lighting, quantizationLevels);
+    if(length(qLighting) <= 0.05) qLighting = uAmbient;
+
+
+    // calculate illumination
+    // ----------------------------------------------------------
+    vec3 illumination = baseColor.xyz * qLighting;
+    gl_FragColor = vec4(illumination, 1.0);
 
 }
 
