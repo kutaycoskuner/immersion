@@ -4,11 +4,11 @@
 	import { browser } from '$app/environment';
 	import * as THREE from 'three';
 	import { InstancedMesh, Object3D } from 'three';
-	import { InstancedBufferAttribute } from 'three';
-	import { Pane } from 'tweakpane';
 	import { fadingGridLines, fadingXAxis, fadingYAxis } from '$lib/materials/gridLines.mat';
 	import { groundMaterial } from '$lib/materials/ground.mat.ts';
 	import { instancedMaterial } from '$lib/materials/instanceQuad.mat.ts';
+	import { PixelMaterial } from '$lib/materials/pixel.mat.ts';
+	import { PostProcessMaterial } from '$lib/materials/pp.mat';
 	import { ViewportGizmo } from 'three-viewport-gizmo';
 	import { ViewportGizmoOptions } from '$lib/config/config-navigation_gizmo.ts';
 	import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
@@ -23,10 +23,9 @@
 	let keyStates: { [key: string]: boolean } = {};
 	let model: THREE.Object3D | null = null;
 
-
 	// todo: remove sometime
 	const isProd = import.meta.env.MODE === 'production';
-  	console.log('Running in production?', isProd);
+	console.log('Running in production?', isProd);
 
 	const loader = new GLTFLoader();
 
@@ -135,6 +134,7 @@
 		// -------------------------------------------------------------------------------
 		scene = new THREE.Scene();
 		const clock = new THREE.Clock();
+
 		// scene.background = new THREE.Color(0xffffff);
 
 		// setting up color theme on init
@@ -150,10 +150,29 @@
 		backgroundColor = adaptCSSColor(backgroundColor);
 		updateSceneBackground(backgroundColor);
 
+		// rendertarget
+		const fullscreenPassScene = new THREE.Scene();
+		const fullscreenPassCamera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+		const fullscreenPass = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), PostProcessMaterial);
+		fullscreenPassScene.add(fullscreenPass);
+
+		// -----
+		const renderTarget = new THREE.WebGLRenderTarget(window.innerWidth, window.innerHeight);
+
+		renderTarget.depthTexture = new THREE.DepthTexture(window.innerWidth, window.innerHeight);
+		renderTarget.depthTexture.type = THREE.UnsignedShortType;
+		renderTarget.depthBuffer = true;
+
 		// Set up the camera
 		// -------------------------------------------------------------------------------
-		camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-
+		camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 100);
+		
+		// After creating renderTarget and fullscreenPass
+		PostProcessMaterial.uniforms.uTexDepth.value = renderTarget.depthTexture;
+		// optional if you want color
+		PostProcessMaterial.uniforms.uCameraNear.value = camera.near;
+		PostProcessMaterial.uniforms.uCameraFar.value = camera.far;
+		
 		// Set up the renderer
 		// -------------------------------------------------------------------------------
 		const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
@@ -203,7 +222,7 @@
 
 		const loader = new THREE.TextureLoader();
 		const tex_instancedQuad = loader.load(`${base}/textures/grassblades02-alpha-128.png`);
-		const tex_ground        = loader.load(`${base}/textures/heightmap01-1k.png`);
+		const tex_ground = loader.load(`${base}/textures/heightmap01-1k.png`);
 		tex_instancedQuad.anisotropy = renderer.capabilities.getMaxAnisotropy();
 		// const tex_ground = loader.load('/textures/test01-4color-128.png');
 		instancedMaterial.uniforms.uMap.value = tex_instancedQuad;
@@ -249,9 +268,8 @@
 			const x = (Math.random() - 0.5) * groundSize; // -10 .. 10
 			const z = (Math.random() - 0.5) * groundSize;
 			// slightly above ground
-			instancePositions.push(new THREE.Vector3(x, quadSize / 6.0, z)); 
-			// instancePositions.push(new THREE.Vector3(x, 0.0, z)); 
-
+			instancePositions.push(new THREE.Vector3(x, quadSize / 6.0, z));
+			// instancePositions.push(new THREE.Vector3(x, 0.0, z));
 		}
 		// debug: print first 10 positions
 		// console.log('Random frame positions (first 10):');
@@ -287,16 +305,13 @@
 		});
 
 		// cube
-		const cube = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), primitiveMaterial);
+		const cube = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), PixelMaterial);
 		cube.position.set(-2, 0.5, 0);
 		cube.rotateY(64);
 		centerObjects.add(cube);
 
 		// cylinder
-		const cylinder = new THREE.Mesh(
-			new THREE.CylinderGeometry(0.6, 0.6, 1.5, 32),
-			primitiveMaterial
-		);
+		const cylinder = new THREE.Mesh(new THREE.CylinderGeometry(0.6, 0.6, 1.5, 32), PixelMaterial);
 		cylinder.position.set(0, 0.75, -2);
 		centerObjects.add(cylinder);
 
@@ -361,18 +376,31 @@
 
 			groundMaterial.uniforms.uPointLightPos.value.copy(pointLight.position);
 			groundMaterial.uniforms.uPointLightColor.value.copy(pointLight.color);
-			
+
 			instancedMaterial.uniforms.uPointLightPos.value.copy(pointLight.position);
 			instancedMaterial.uniforms.uPointLightColor.value.copy(pointLight.color);
 			// groundMaterial.uniforms.uAmbient.value.copy(ambientLight.color);
 			instancedMaterial.uniforms.uTime.value = clock.getElapsedTime();
+
+			PixelMaterial.uniforms.uPointLightPos.value.copy(pointLight.position);
+			PixelMaterial.uniforms.uPointLightColor.value.copy(pointLight.color);
+			// PixelMaterial.uniforms.uAmbient.value.copy(ambientLight.color);
+			PixelMaterial.uniforms.uTime.value = clock.getElapsedTime();
+
 			// rotate point light
 			const radius = 3;
 			pointLight.position.x = Math.cos(time) * radius;
 			pointLight.position.z = Math.sin(time) * radius;
 			pointLight.position.y = 3 + Math.sin(time * 1.0);
 
+			// renderer.render(scene, camera);
+			// pass 1: render scene to render target (with depth)
+			renderer.setRenderTarget(renderTarget);
 			renderer.render(scene, camera);
+
+			// pass 2: render fullscreen quad showing depth
+			renderer.setRenderTarget(null);
+			renderer.render(fullscreenPassScene, fullscreenPassCamera);
 
 			controls.update();
 			gizmo.render();
