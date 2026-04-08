@@ -9,6 +9,7 @@
 	import { instancedMaterial } from '$lib/materials/instanceQuad.mat.ts';
 	import { PixelMaterial } from '$lib/materials/pixel.mat.ts';
 	import { PostProcessMaterial } from '$lib/materials/pp.mat';
+	import { normalMaterial } from '$lib/materials/normal.mat.ts';
 	import { ViewportGizmo } from 'three-viewport-gizmo';
 	import { ViewportGizmoOptions } from '$lib/config/config-navigation_gizmo.ts';
 	import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
@@ -28,6 +29,7 @@
 	console.log('Running in production?', isProd);
 
 	const loader = new GLTFLoader();
+	const originalMaterials: Map<THREE.Object3D, THREE.Material | THREE.Material[]> = new Map();
 
 	let currentTheme: string;
 	theme.themeStore.subscribe((value) => {
@@ -156,23 +158,35 @@
 		const fullscreenPass = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), PostProcessMaterial);
 		fullscreenPassScene.add(fullscreenPass);
 
-		// -----
-		const renderTarget = new THREE.WebGLRenderTarget(window.innerWidth, window.innerHeight);
+		// depth render target
+		const depthRenderTarget = new THREE.WebGLRenderTarget(window.innerWidth, window.innerHeight);
 
-		renderTarget.depthTexture = new THREE.DepthTexture(window.innerWidth, window.innerHeight);
-		renderTarget.depthTexture.type = THREE.UnsignedShortType;
-		renderTarget.depthBuffer = true;
+		depthRenderTarget.depthTexture = new THREE.DepthTexture(window.innerWidth, window.innerHeight);
+		depthRenderTarget.depthTexture.type = THREE.UnsignedShortType;
+		depthRenderTarget.depthBuffer = true;
+
+		const normalRenderTarget = new THREE.WebGLRenderTarget(window.innerWidth, window.innerHeight, {
+			minFilter: THREE.LinearFilter,
+			magFilter: THREE.LinearFilter,
+			format: THREE.RGBAFormat,
+			type: THREE.FloatType // to store signed values accurately
+		});
 
 		// Set up the camera
 		// -------------------------------------------------------------------------------
 		camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 100);
-		
+
 		// After creating renderTarget and fullscreenPass
-		PostProcessMaterial.uniforms.uTexDepth.value = renderTarget.depthTexture;
+		PostProcessMaterial.uniforms.uTexColor.value = depthRenderTarget.texture;
+		PostProcessMaterial.uniforms.uTexDepth.value = depthRenderTarget.depthTexture;
 		// optional if you want color
 		PostProcessMaterial.uniforms.uCameraNear.value = camera.near;
 		PostProcessMaterial.uniforms.uCameraFar.value = camera.far;
-		
+
+		PostProcessMaterial.uniforms.uResolution.value.set(window.innerWidth, window.innerHeight);
+		PostProcessMaterial.uniforms.uOutlineThickness.value = 0.6;
+		PostProcessMaterial.uniforms.uOutlineStrength.value = 0.5;
+
 		// Set up the renderer
 		// -------------------------------------------------------------------------------
 		const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
@@ -393,18 +407,33 @@
 			pointLight.position.z = Math.sin(time) * radius;
 			pointLight.position.y = 3 + Math.sin(time * 1.0);
 
-			// renderer.render(scene, camera);
-			// pass 1: render scene to render target (with depth)
-			renderer.setRenderTarget(renderTarget);
+			// ---------------------------------------------------------------------------
+
+			// PASS 1 — render normals
+			scene.overrideMaterial = normalMaterial;
+
+			renderer.setRenderTarget(normalRenderTarget);
+			renderer.clear();
 			renderer.render(scene, camera);
 
-			// pass 2: render fullscreen quad showing depth
+			scene.overrideMaterial = null;
+			// PASS 2 — render color + depth
+			renderer.setRenderTarget(depthRenderTarget);
+			renderer.clear();
+			renderer.render(scene, camera);
+
+			// PASS 3 — fullscreen postprocess
+			PostProcessMaterial.uniforms.uTexColor.value = depthRenderTarget.texture;
+			PostProcessMaterial.uniforms.uTexDepth.value = depthRenderTarget.depthTexture;
+			PostProcessMaterial.uniforms.uTexNormal.value = normalRenderTarget.texture;
+
+			// render fullscreen quad showing depth
 			renderer.setRenderTarget(null);
 			renderer.render(fullscreenPassScene, fullscreenPassCamera);
 
+			// update controls + helpers
 			controls.update();
 			gizmo.render();
-
 			updateCamera(); // Update camera movement
 		}
 		animate();
