@@ -158,14 +158,18 @@
 		const fullscreenPass = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), PostProcessMaterial);
 		fullscreenPassScene.add(fullscreenPass);
 
-		// depth render target
-		const depthRenderTarget = new THREE.WebGLRenderTarget(window.innerWidth, window.innerHeight);
+		// scene depth render target
+		const sceneDepthRT = new THREE.WebGLRenderTarget(window.innerWidth, window.innerHeight);
+		sceneDepthRT.depthTexture = new THREE.DepthTexture(window.innerWidth, window.innerHeight);
+		sceneDepthRT.depthTexture.type = THREE.UnsignedShortType;
+		sceneDepthRT.depthBuffer = true;
 
-		depthRenderTarget.depthTexture = new THREE.DepthTexture(window.innerWidth, window.innerHeight);
-		depthRenderTarget.depthTexture.type = THREE.UnsignedShortType;
-		depthRenderTarget.depthBuffer = true;
+		const objectDepthRT = new THREE.WebGLRenderTarget(window.innerWidth, window.innerHeight);
+		objectDepthRT.depthTexture = new THREE.DepthTexture(window.innerWidth, window.innerHeight);
+		objectDepthRT.depthTexture.type = THREE.UnsignedShortType;
+		objectDepthRT.depthBuffer = true;
 
-		const normalRenderTarget = new THREE.WebGLRenderTarget(window.innerWidth, window.innerHeight, {
+		const objectNormalsRT = new THREE.WebGLRenderTarget(window.innerWidth, window.innerHeight, {
 			minFilter: THREE.LinearFilter,
 			magFilter: THREE.LinearFilter,
 			format: THREE.RGBAFormat,
@@ -177,8 +181,9 @@
 		camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 100);
 
 		// After creating renderTarget and fullscreenPass
-		PostProcessMaterial.uniforms.uTexColor.value = depthRenderTarget.texture;
-		PostProcessMaterial.uniforms.uTexDepth.value = depthRenderTarget.depthTexture;
+		PostProcessMaterial.uniforms.uTexColor.value = sceneDepthRT.texture;
+		PostProcessMaterial.uniforms.uTexScrDepth.value = sceneDepthRT.depthTexture;
+		PostProcessMaterial.uniforms.uTexObjDepth.value = objectDepthRT.depthTexture;
 		// optional if you want color
 		PostProcessMaterial.uniforms.uCameraNear.value = camera.near;
 		PostProcessMaterial.uniforms.uCameraFar.value = camera.far;
@@ -266,6 +271,7 @@
 		const ground = new THREE.Mesh(groundGeometry, groundMaterial);
 		ground.rotation.x = -Math.PI / 2;
 		ground.position.y = 0;
+		ground.layers.set(0);
 		scene.add(ground);
 
 		// step 2: create the instance quad
@@ -306,6 +312,7 @@
 			instancedMesh.geometry.getAttribute('instancePos') as THREE.InstancedBufferAttribute
 		).needsUpdate = true;
 
+		instancedMesh.layers.set(0);
 		scene.add(instancedMesh);
 
 		// step 5: more objects
@@ -338,6 +345,10 @@
 		// const dodecahedron = new THREE.Mesh(new THREE.DodecahedronGeometry(0.8), primitiveMaterial);
 		// dodecahedron.position.set(0, 0.8, 2);
 		// centerObjects.add(dodecahedron);
+
+		centerObjects.traverse((obj) => {
+			obj.layers.set(1);
+		});
 
 		// -------------------------------------------------------------------------------
 		// test end
@@ -409,23 +420,31 @@
 
 			// ---------------------------------------------------------------------------
 
-			// PASS 1 — render normals
+			// PASS 1 — render only object normals
 			scene.overrideMaterial = normalMaterial;
-
-			renderer.setRenderTarget(normalRenderTarget);
+			camera.layers.disableAll();
+			camera.layers.enable(1);
+			renderer.setRenderTarget(objectNormalsRT);
 			renderer.clear();
 			renderer.render(scene, camera);
 
+			// PASS 2 — render only object depth
+			renderer.setRenderTarget(objectDepthRT);
+			renderer.clear();
+			renderer.render(scene, camera);
+
+			// PASS 3 — render color + depth
 			scene.overrideMaterial = null;
-			// PASS 2 — render color + depth
-			renderer.setRenderTarget(depthRenderTarget);
+			camera.layers.enableAll();
+			renderer.setRenderTarget(sceneDepthRT);
 			renderer.clear();
 			renderer.render(scene, camera);
 
-			// PASS 3 — fullscreen postprocess
-			PostProcessMaterial.uniforms.uTexColor.value = depthRenderTarget.texture;
-			PostProcessMaterial.uniforms.uTexDepth.value = depthRenderTarget.depthTexture;
-			PostProcessMaterial.uniforms.uTexNormal.value = normalRenderTarget.texture;
+			// PASS 4 — fullscreen postprocess
+			PostProcessMaterial.uniforms.uTexNormal.value = objectNormalsRT.texture;
+			PostProcessMaterial.uniforms.uTexObjDepth.value = objectDepthRT.depthTexture;
+			PostProcessMaterial.uniforms.uTexColor.value = sceneDepthRT.texture;
+			PostProcessMaterial.uniforms.uTexScrDepth.value = sceneDepthRT.depthTexture;
 
 			// render fullscreen quad showing depth
 			renderer.setRenderTarget(null);

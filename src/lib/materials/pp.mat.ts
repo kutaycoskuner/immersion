@@ -6,9 +6,10 @@ export const PostProcessMaterial = new ShaderMaterial({
 	vertexShader: vertexShader,
 	fragmentShader: fragmentShader,
 	uniforms: {
-		uTexColor: { value: null }, // <-- assign later
-		uTexDepth: { value: null }, // <-- assign later
-        uTexNormal: { value: null }, // <-- assign later
+		uTexColor: { value: null }, 	// <-- assign later
+		uTexScrDepth: { value: null }, 	// <-- assign later
+		uTexObjDepth: { value: null }, 	// <-- assign later
+        uTexNormal: { value: null }, 	// <-- assign later
 		
         uCameraFar: { value: null },
 		uCameraNear: { value: null },
