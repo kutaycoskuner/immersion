@@ -131,6 +131,17 @@
 		return line;
 	}
 
+	// function resize() {
+	// 	const w = window.innerWidth;
+	// 	const h = window.innerHeight;
+
+	// 	renderer.setSize(w, h);
+
+	// 	pixelRenderTarget.setSize(Math.floor(w / pixelScale), Math.floor(h / pixelScale));
+
+	// 	pixelMaterial.uniforms.uResolution.value.set(w, h);
+	// }
+
 	onMount(() => {
 		// Set up the scene
 		// -------------------------------------------------------------------------------
@@ -152,6 +163,10 @@
 		backgroundColor = adaptCSSColor(backgroundColor);
 		updateSceneBackground(backgroundColor);
 
+		const pixelScale = 2.0;
+		const pixelW = Math.floor(window.innerWidth / pixelScale);
+		const pixelH = Math.floor(window.innerHeight / pixelScale);
+
 		// rendertarget
 		const fullscreenPassScene = new THREE.Scene();
 		const fullscreenPassCamera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
@@ -159,22 +174,39 @@
 		fullscreenPassScene.add(fullscreenPass);
 
 		// scene depth render target
-		const sceneDepthRT = new THREE.WebGLRenderTarget(window.innerWidth, window.innerHeight);
-		sceneDepthRT.depthTexture = new THREE.DepthTexture(window.innerWidth, window.innerHeight);
+		const sceneDepthRT = new THREE.WebGLRenderTarget(pixelW, pixelH);
+		sceneDepthRT.texture.minFilter = THREE.NearestFilter;
+		sceneDepthRT.texture.magFilter = THREE.NearestFilter;
+
+		sceneDepthRT.depthTexture = new THREE.DepthTexture(pixelW, pixelH);
 		sceneDepthRT.depthTexture.type = THREE.UnsignedShortType;
 		sceneDepthRT.depthBuffer = true;
 
-		const objectDepthRT = new THREE.WebGLRenderTarget(window.innerWidth, window.innerHeight);
-		objectDepthRT.depthTexture = new THREE.DepthTexture(window.innerWidth, window.innerHeight);
+		const objectDepthRT = new THREE.WebGLRenderTarget(pixelW, pixelH);
+		objectDepthRT.texture.minFilter = THREE.NearestFilter;
+		objectDepthRT.texture.magFilter = THREE.NearestFilter;
+		
+		objectDepthRT.depthTexture = new THREE.DepthTexture(pixelW, pixelH);
 		objectDepthRT.depthTexture.type = THREE.UnsignedShortType;
 		objectDepthRT.depthBuffer = true;
 
-		const objectNormalsRT = new THREE.WebGLRenderTarget(window.innerWidth, window.innerHeight, {
-			minFilter: THREE.LinearFilter,
-			magFilter: THREE.LinearFilter,
-			format: THREE.RGBAFormat,
-			type: THREE.FloatType // to store signed values accurately
-		});
+		const objectNormalsRT = new THREE.WebGLRenderTarget(pixelW, pixelH);
+		objectNormalsRT.texture.minFilter = THREE.NearestFilter;
+		objectNormalsRT.texture.magFilter = THREE.NearestFilter;
+		objectNormalsRT.texture.format = THREE.RGBAFormat;
+		objectNormalsRT.texture.type = THREE.FloatType;
+		
+
+		// const pixelizationRT = new THREE.WebGLRenderTarget(
+		// 	Math.floor(window.innerWidth / pixelScale),
+		// 	Math.floor(window.innerHeight / pixelScale),
+		// 	{
+		// 		minFilter: THREE.NearestFilter,
+		// 		magFilter: THREE.NearestFilter,
+		// 		format: THREE.RGBAFormat,
+		// 		depthBuffer: false
+		// 	}
+		// );
 
 		// Set up the camera
 		// -------------------------------------------------------------------------------
@@ -194,7 +226,7 @@
 
 		// Set up the renderer
 		// -------------------------------------------------------------------------------
-		const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+		renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
 		renderer.setSize(window.innerWidth, window.innerHeight);
 
 		// viewport gizmo or navigation gizmo
@@ -241,7 +273,7 @@
 
 		const loader = new THREE.TextureLoader();
 		const tex_instancedQuad = loader.load(`${base}/textures/grassblades02-alpha-128.png`);
-		const tex_ground = loader.load(`${base}/textures/heightmap01-1k.png`);
+		const tex_ground = loader.load(`${base}/textures/heightmap03-1k.png`);
 		tex_instancedQuad.anisotropy = renderer.capabilities.getMaxAnisotropy();
 		// const tex_ground = loader.load('/textures/test01-4color-128.png');
 		instancedMaterial.uniforms.uMap.value = tex_instancedQuad;
@@ -252,7 +284,7 @@
 		// point light
 		const pointLight = new THREE.PointLight(0xffffff, 2, 30);
 		pointLight.position.set(3, 3, 0);
-		pointLight.intensity = 8;
+		pointLight.intensity = 12;
 		scene.add(pointLight);
 
 		// Add ambient and directional lights for better visibility of models
@@ -420,37 +452,45 @@
 
 			// ---------------------------------------------------------------------------
 
-			// PASS 1 — render only object normals
+
+			// PASS 1 — object normals (pixel res)
 			scene.overrideMaterial = normalMaterial;
 			camera.layers.disableAll();
 			camera.layers.enable(1);
+
 			renderer.setRenderTarget(objectNormalsRT);
+			renderer.setViewport(0, 0, pixelW, pixelH);
 			renderer.clear();
 			renderer.render(scene, camera);
 
-			// PASS 2 — render only object depth
+			// PASS 2 — object depth (pixel res)
 			renderer.setRenderTarget(objectDepthRT);
 			renderer.clear();
 			renderer.render(scene, camera);
 
-			// PASS 3 — render color + depth
+			// PASS 3 — scene color + depth (pixel res)
 			scene.overrideMaterial = null;
 			camera.layers.enableAll();
+
 			renderer.setRenderTarget(sceneDepthRT);
 			renderer.clear();
 			renderer.render(scene, camera);
 
-			// PASS 4 — fullscreen postprocess
+			// PASS 4 — outline + upscale to screen
 			PostProcessMaterial.uniforms.uTexNormal.value = objectNormalsRT.texture;
 			PostProcessMaterial.uniforms.uTexObjDepth.value = objectDepthRT.depthTexture;
 			PostProcessMaterial.uniforms.uTexColor.value = sceneDepthRT.texture;
 			PostProcessMaterial.uniforms.uTexScrDepth.value = sceneDepthRT.depthTexture;
 
-			// render fullscreen quad showing depth
+			fullscreenPass.material = PostProcessMaterial;
+
 			renderer.setRenderTarget(null);
+			renderer.setViewport(0, 0, window.innerWidth, window.innerHeight);
 			renderer.render(fullscreenPassScene, fullscreenPassCamera);
 
+	
 			// update controls + helpers
+			// ---------------------------------------------------------------------------
 			controls.update();
 			gizmo.render();
 			updateCamera(); // Update camera movement

@@ -15,7 +15,7 @@ vec3 quantizeColor(vec3 color, float levels) {
 void main() {
     // variables
     // -------------------------------------------------------------
-    float quantLevels = 4.0;
+    float quantLevels = 5.0;
 
     // lighting parameteres
     // -------------------------------------------------------------
@@ -31,10 +31,10 @@ void main() {
     // -------------------------------------------------------------
     vec3 qLighting = quantizeColor(lighting, quantLevels);
     // fallback if quantized lighting is too low
-    if(length(qLighting) <= 0.05) {
+    if(length(qLighting) <= 0.01) {
         qLighting = uAmbient;
     }
-    qLighting = lighting;
+    // qLighting = lighting;
 
     // final color
     vec3 illumination = uBaseColor * qLighting;
