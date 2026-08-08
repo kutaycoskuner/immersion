@@ -4,6 +4,7 @@
 
 	import GithubIcon from '$lib/icons/icon-github.svelte';
 	import ThreeIcon from '$lib/icons/icon-three.js.svelte';
+	import FourCubesIcon from '$lib/icons/icon-four_cubes.svelte';
 
 	let tooltipText = '';
 	let showTooltip = false;
@@ -44,6 +45,23 @@
 				}}
 			>
 				<ThreeIcon />
+			</a>
+
+			<a
+				href="https://kutaycoskuner.github.io/port/computer_science"
+				target="_blank"
+				rel="noopener noreferrer"
+				class="icon-button"
+				on:mouseenter={() => {
+					tooltipText = 'other projects';
+					showTooltip = true;
+				}}
+				on:mouseleave={() => {
+					tooltipText = '';
+					showTooltip = false;
+				}}
+			>
+				<FourCubesIcon />
 			</a>
 
 			{#if showTooltip}
@@ -96,8 +114,8 @@
 	}
 
 	.icon-button {
-		padding-left: .5rem;
-		padding-bottom: .5rem;
+		padding-left: 0.5rem;
+		padding-bottom: 0.5rem;
 		background: transparent;
 		cursor: pointer;
 		transition: all 0.2s ease;
