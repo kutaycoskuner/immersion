@@ -5,14 +5,15 @@
 	import { Pane } from 'tweakpane';
 	import { fadingGridLines, fadingXAxis, fadingYAxis } from '$lib/materials/gridLines.mat';
 	// import { infiniteAxes } from '$lib/shaders/InfiniteAxes.ts';
-	import { ViewportGizmo } from 'three-viewport-gizmo';
-	import { ViewportGizmoOptions } from '$lib/config/config-navigation_gizmo.ts';
+	import { ViewController } from '$lib/viewGizmo/viewController';
+	import ViewGizmo from '$lib/components/ViewGizmo.svelte';
 	import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 	import { modelStore } from '../../store/model_store';
 	import { theme } from '$lib/ColorTheme.svelte';
 	import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 
 	let canvas: HTMLCanvasElement;
+	let view: ViewController | undefined; // set in onMount, read by the gizmo
 	let scene: THREE.Scene;
 	let camera: THREE.PerspectiveCamera;
 	let renderer: THREE.WebGLRenderer;
@@ -24,14 +25,14 @@
 	const loader = new GLTFLoader();
 
 	let currentTheme: string;
-	theme.themeStore.subscribe((value) => {
+	const unsubscribeTheme = theme.themeStore.subscribe((value) => {
 		currentTheme = value;
 	});
 
 	// Reactive statement to call the function whenever `currentTheme` changes
 	$: currentTheme && updateSceneBackground();
 
-	modelStore.subscribe((value) => {
+	function showModel(value: THREE.Object3D | null) {
 		if (model) {
 			scene.remove(model); // Remove the previous model if it exists
 		}
@@ -52,7 +53,7 @@
 			camera.position.set(center.x, center.y, center.z + cameraZ);
 			camera.lookAt(center.x, center.y, center.z);
 		}
-	});
+	}
 
 	function updateSceneBackground(backgroundColor: string = '#ffffff') {
 		if (backgroundColor == '#ffffff') {
@@ -143,13 +144,11 @@
 		camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
 		// Set up the renderer
 		// -------------------------------------------------------------------------------
-		const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+		renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
 		renderer.setSize(window.innerWidth, window.innerHeight);
 
 		// viewport gizmo or navigation gizmo
 		const controls = new OrbitControls(camera, renderer.domElement);
-		const gizmo = new ViewportGizmo(camera, renderer, ViewportGizmoOptions);
-		gizmo.attachControls(controls);
 
 		// camera.position.set(-7.3, 5, 6.9);
 		camera.position.set(-0.02, 1.2, 6.0);
@@ -247,40 +246,57 @@
 		}
 
 		// Track key states
-		window.addEventListener('keydown', (event) => (keyStates[event.key.toLowerCase()] = true));
-		window.addEventListener('keyup', (event) => (keyStates[event.key.toLowerCase()] = false));
+		const onKeyDown = (event: KeyboardEvent) => (keyStates[event.key.toLowerCase()] = true);
+		const onKeyUp = (event: KeyboardEvent) => (keyStates[event.key.toLowerCase()] = false);
+		window.addEventListener('keydown', onKeyDown);
+		window.addEventListener('keyup', onKeyUp);
 
+		// the gizmo's views, drag orbit and keys; made after the start position is set,
+		// which becomes its reset view
+		const views = new ViewController(camera, controls);
+		view = views;
+
+		let frame = 0; // requestAnimationFrame id, cancelled on unmount
 		// Animation loop
 		function animate() {
-			requestAnimationFrame(animate);
+			frame = requestAnimationFrame(animate);
 
 			const delta = clock.getDelta();
 			if (mixer) mixer.update(delta);
 
 			renderer.render(scene, camera);
+			views.update();
 			controls.update();
-			gizmo.render();
 
 			updateCamera(); // Update camera movement
 		}
 		animate();
 
-		window.onresize = () => {
-			//... Scene's resize logic
+		// subscribed here, after the scene and camera exist: a model already in the store
+		// (loaded on another page) would otherwise be added to a scene that is not built yet
+		const unsubscribeModel = modelStore.subscribe(showModel);
 
-			gizmo.update();
-		};
-
-		// Clean up on unmount
+		// leaving the page stops the loop, the listeners and the subscriptions
 		return () => {
+			cancelAnimationFrame(frame);
+			views.dispose();
+			view = undefined;
 			window.removeEventListener('resize', resize);
-			window.removeEventListener('keydown', (event) => (keyStates[event.key.toLowerCase()] = true));
-			window.removeEventListener('keyup', (event) => (keyStates[event.key.toLowerCase()] = false));
+			window.removeEventListener('keydown', onKeyDown);
+			window.removeEventListener('keyup', onKeyUp);
+			unsubscribeModel();
+			unsubscribeTheme();
+			if (model) scene.remove(model); // the model belongs to the store, not to this scene
+			renderer.dispose();
 		};
 	});
 
 	onDestroy(() => {});
 </script>
 
-<canvas bind:this={canvas} style="display: block; margin: 0; padding: 0; overflow: hidden;"
-></canvas>
+<!-- positioned box so the gizmo sits in the canvas' bottom-right corner -->
+<div style="position: relative;">
+	<canvas bind:this={canvas} style="display: block; margin: 0; padding: 0; overflow: hidden;"
+	></canvas>
+	{#if view}<ViewGizmo controller={view} />{/if}
+</div>

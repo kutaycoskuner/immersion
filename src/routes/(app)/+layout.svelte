@@ -1,27 +1,21 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
-	import { base } from '$app/paths';
-	import BasicNavigation from '$lib/components/BasicNavigation.svelte';
+	// -----------------------------------------------------------------------------------------
+	//   author          : Kutay Coskuner
+	//   ai-contributors : unknown (before 2026-11-14), Claude Opus 5.5 (claude-opus-5-5)
+	//   last update     : 2026-11-14
+	//   disclaimer      : Provided as is, without warranty of any kind; use at your own risk.
+	//                     Check outputs before relying on them.
+	// -----------------------------------------------------------------------------------------
+	// Layout of the app pages: the bottom-left bar, the top navigation links and the settings
+	// overlay (Esc) around every page. Math is rendered with KaTeX inside the components that
+	// need it (no MathJax CDN script any more).
 	import IconButtons from '$lib/components/IconButtons.svelte';
+	import BasicNavigation from '$lib/components/BasicNavigation.svelte';
 	import SettingsOverlay from '$lib/components/SettingsOverlay.svelte';
 	// import LeftHoverNavigation from '$lib/components/LeftHoverNavigation.svelte';
-	import Toggle from '$lib/components/ThemeChanger.svelte';
+	// import Toggle from '$lib/components/ThemeChanger.svelte';
 	let { children } = $props();
-
-	onMount(() => {
-		setTimeout(() => {
-			if (typeof window.MathJax !== 'undefined') {
-				window.MathJax.typesetPromise();
-			} else {
-				console.warn('MathJax object not found. Ensure the script loaded correctly.');
-			}
-		}, 750); // Increased delay
-	});
 </script>
-
-<svelte:head>
-	<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg-full.js"></script>
-</svelte:head>
 
 <!-- <Toggle /> -->
 <IconButtons />

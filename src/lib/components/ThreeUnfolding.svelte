@@ -17,7 +17,9 @@
 	let renderer: THREE.WebGLRenderer;
 
 	let root: THREE.Group;
-	let pivots: Record<FaceName, THREE.Group> = {};
+	// filled in onMount, one pivot per folding face, before the first frame reads them
+	let pivots = {} as Record<FaceName, THREE.Group>;
+	let frame = 0; // requestAnimationFrame id, cancelled when the page is left
 
 	let unfolded = false;
 	let unfolding = false;
@@ -249,30 +251,46 @@
 				(face.parent ?? root).add(pivot);
 			}
 
-			if (face.name !== 'bottom') {
-				pivots[face.name] = pivot;
-			}
+			// the bottom face is not in facesData, so every face here gets a pivot
+			pivots[face.name] = pivot;
 		}
 
 		// === Window & Input Event Listeners ===
 
-		window.addEventListener('resize', () => {
+		const onResize = () => {
 			renderer.setSize(window.innerWidth, window.innerHeight);
 			camera.aspect = window.innerWidth / window.innerHeight;
 			camera.updateProjectionMatrix();
-		});
-
+		};
+		window.addEventListener('resize', onResize);
 		window.addEventListener('mousedown', onMouseDown);
 		window.addEventListener('mousemove', onMouseMove);
 		window.addEventListener('mouseup', onMouseUp);
 
 		animate();
+
+		// leaving the page stops the loop and frees the GPU resources
+		return () => {
+			cancelAnimationFrame(frame);
+			window.removeEventListener('resize', onResize);
+			window.removeEventListener('mousedown', onMouseDown);
+			window.removeEventListener('mousemove', onMouseMove);
+			window.removeEventListener('mouseup', onMouseUp);
+			scene.traverse((obj) => {
+				const mesh = obj as THREE.Mesh;
+				mesh.geometry?.dispose();
+				const mat = mesh.material as THREE.MeshBasicMaterial | undefined;
+				mat?.map?.dispose();
+				mat?.dispose();
+			});
+			renderer.dispose();
+		};
 	});
 
 	// === Animation Loop ===
 
 	function animate() {
-		requestAnimationFrame(animate);
+		frame = requestAnimationFrame(animate);
 
 		// Slowly rotate cube when folded
 		if (!unfolded) {
@@ -339,4 +357,4 @@
 	on:pointerenter={handlePointerEnter}
 	on:pointerleave={handlePointerLeave}
 	style="display: block; width: 100%; height: 100vh"
-/>
+></canvas>

@@ -1,757 +1,436 @@
 <script lang="ts">
-	//				imports
-	//  --------------------------------------------------------------------------------------
-	import { onMount, onDestroy } from 'svelte';
+	// -----------------------------------------------------------------------------------------
+	//   author          : Kutay Coskuner
+	//   ai-contributors : unknown (before 2026-11-14), Claude Opus 5.5 (claude-opus-5-5)
+	//   last update     : 2026-11-14
+	//   disclaimer      : Provided as is, without warranty of any kind; use at your own risk.
+	//                     Check outputs before relying on them.
+	// -----------------------------------------------------------------------------------------
+	// 3d scene of the vector page (src/routes/(app)/+page.svelte): a fading grid, two input
+	// vectors with tips, ground references and coordinate labels, the angle between them, and
+	// the product chosen in the Tweakpane tab:
+	//   - Scalar Product: the scalar projection of v1 onto v2 and its projection line
+	//   - Vector Product: v1 x v2 and the parallelogram whose area is its length
+	// The sliders write STOREVECTOR1 / STOREVECTOR2 and the tab writes ACTIVE_PRODUCT
+	// ($lib/stores/vectors), which the math overlay reads too.
+	// The viewport gizmo (ViewGizmo.svelte, bottom right) and the view keys move the camera
+	// through a ViewController, here with the orthographic switch, so the scene renders with
+	// views.camera.
+	// Each part of the scene lives in its own THREE.Group that is cleared and rebuilt on every
+	// change; everything (loop, listeners, store subscriptions, pane, GPU resources) is released
+	// when the page is left, otherwise every visit would add another render loop.
+	import { onMount } from 'svelte';
+	import { get } from 'svelte/store';
 	import * as THREE from 'three';
 	import { Pane } from 'tweakpane';
-	import { fadingGridLines, fadingXAxis, fadingYAxis } from '$lib/materials/gridLines.mat';
-	// import { infiniteAxes } from '$lib/shaders/InfiniteAxes.ts';
-	import { ViewportGizmo } from 'three-viewport-gizmo';
-	import { ViewportGizmoOptions } from '$lib/config/config-navigation_gizmo.ts';
 	import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+	import { ViewController } from '$lib/viewGizmo/viewController';
+	import ViewGizmo from '$lib/components/ViewGizmo.svelte';
+	import { fadingGridLines, fadingXAxis, fadingYAxis } from '$lib/materials/gridLines.mat';
+	import { helperColor, resultColors } from '$lib/config/config-vector_colors';
 	import { modelStore } from '../../store/model_store';
 	import { theme } from '$lib/ColorTheme.svelte';
-	import { STOREVECTOR1, STOREVECTOR2 } from '$lib/stores/vectors';
-	import { derived } from 'svelte/store';
+	import { ACTIVE_PRODUCT, PRODUCTS, STOREVECTOR1, STOREVECTOR2 } from '$lib/stores/vectors';
+	import type { Vec3 } from '$lib/vectorMath';
 
-	//				variables
+	//				settings
 	//  --------------------------------------------------------------------------------------
+	const VECTOR_SCALE = 5; // a unit vector is drawn 5 grid squares long
+	const GRID_HALF_SIZE = 10;
+	const ARC_RADIUS = 1.5;
+	const LABEL_OFFSET = 0.6;
+	const MOVE_SPEED = 0.1; // WASD camera movement per frame
+
 	let canvas: HTMLCanvasElement;
-	let scene: THREE.Scene;
-	let camera: THREE.PerspectiveCamera;
-	let renderer: THREE.WebGLRenderer;
-	let keyStates: { [key: string]: boolean } = {};
-	let model: THREE.Object3D | null = null;
+	let viewport: HTMLDivElement; // the scene fills this box (an area of the page), not the window
+	let paneHost: HTMLDivElement; // the Tweakpane controls sit in the viewport's top-right corner
+	let view: ViewController | undefined; // camera moves of the gizmo and the view keys (set in onMount)
 
-	let pane: Pane;
-	let vectorScale = 5;
-
-	let paneVector1 = { x: 1, y: 1, z: 0 };
-	let threeVector1: THREE.Line = drawVector(1, 1, 1, vectorScale);
-	let threeVectorTip1: THREE.Mesh;
-	let threeVectorText1: THREE.Sprite;
-	let threeVectorUpRef1: THREE.Line;
-
-	let paneVector2 = { x: 1, y: 0, z: 0 };
-	let threeVector2: THREE.Line = drawVector(0, 0, 0, vectorScale);
-	let threeVectorTip2: THREE.Mesh;
-	let threeVectorText2: THREE.Sprite;
-	let threeVectorUpRef2: THREE.Line;
-
-	let threeVectorDot: THREE.Line;
-	let threeVectorTipDot: THREE.Mesh;
-	let threeVectorTextDot: THREE.Sprite;
-	let threeVectorUpRefDot: THREE.Line;
-
-	// assistants
-	let angleArc: THREE.Line | null = null;
-	let angleLabel: THREE.Sprite | null = null;
-	// let planeTriangle: THREE.Mesh | null = null;
-	let scalarProjectionLine: THREE.Line | null = null;
-
-	// ui
-	let showGroundProjections = true;
-	let showAngleArc = true;
-	let showAngleLabel = true;
-	let showTipText = true;
-	let showProjection = true;
-
-	const vectorPair = derived([STOREVECTOR1, STOREVECTOR2], ([$v1, $v2]) => ({ v1: $v1, v2: $v2 }));
-
-	let currentTheme: string;
-	theme.themeStore.subscribe((value) => {
-		currentTheme = value;
-	});
-
-	//				reactives
+	//				drawing helpers (pure: they build objects, the caller adds them)
 	//  --------------------------------------------------------------------------------------
-	// Reactive statement to call the function whenever `currentTheme` changes
-	$: vectorPair.subscribe(({ v1: a, v2: b }) => {
-		const vec1 = new THREE.Vector3(a.x, a.y, a.z);
-		const vec2 = new THREE.Vector3(b.x, b.y, b.z);
-		updateAngleArc(vec1, vec2);
-		updateScalarProjectionLine(vec1, vec2);
-		updateDotProjection(vec1, vec2);
-	});
+	function toThree(v: Vec3): THREE.Vector3 {
+		return new THREE.Vector3(v.x, v.y, v.z);
+	}
 
-	$: currentTheme && updateSceneBackground();
-
-	$: STOREVECTOR1.subscribe((vector) => {
-		updateVector(vector.x, vector.y, vector.z, 1);
-	});
-	$: STOREVECTOR2.subscribe((vector) => {
-		updateVector(vector.x, vector.y, vector.z, 2);
-	});
-
-	modelStore.subscribe((value) => {
-		if (model) {
-			scene.remove(model); // Remove the previous model if it exists
+	/** Removes every child of a group and frees its geometry, materials and textures. */
+	function clearGroup(group: THREE.Group) {
+		for (const child of [...group.children]) {
+			group.remove(child);
+			child.traverse((obj) => {
+				const mesh = obj as THREE.Mesh;
+				mesh.geometry?.dispose();
+				const materials = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
+				for (const mat of materials) {
+					if (!mat) continue;
+					(mat as THREE.SpriteMaterial).map?.dispose();
+					mat.dispose();
+				}
+			});
 		}
-		model = value; // Update the local model reference
-		if (model) {
-			scene.add(model); // Add the new model to the scene
+	}
 
-			// Optionally, adjust the camera to focus on the model
+	function createTextSprite(message: string, color = 'white', fontSize = 64): THREE.Sprite {
+		const textCanvas = document.createElement('canvas');
+		textCanvas.width = 512;
+		textCanvas.height = 256;
+		const context = textCanvas.getContext('2d')!;
+		context.font = `${fontSize}px Arial`;
+		context.fillStyle = color;
+		context.textAlign = 'center';
+		context.fillText(message, textCanvas.width / 2, textCanvas.height / 2 + fontSize / 2);
+
+		const material = new THREE.SpriteMaterial({
+			map: new THREE.CanvasTexture(textCanvas),
+			transparent: true,
+			// the canvas is mostly empty; writing depth for it would cut a label-sized hole
+			// into the transparent parallelogram behind (it then fails the depth test there)
+			depthWrite: false
+		});
+		const sprite = new THREE.Sprite(material);
+		sprite.scale.set(2, 1, 1); // the canvas' 2:1 ratio
+		return sprite;
+	}
+
+	function dashedLine(start: THREE.Vector3, end: THREE.Vector3, color: THREE.ColorRepresentation, opacity = 1) {
+		const geometry = new THREE.BufferGeometry().setFromPoints([start, end]);
+		const material = new THREE.LineDashedMaterial({
+			color,
+			dashSize: 0.1,
+			gapSize: 0.05,
+			transparent: opacity < 1,
+			opacity
+		});
+		const line = new THREE.Line(geometry, material);
+		line.computeLineDistances(); // dashed lines need the distances along the line
+		return line;
+	}
+
+	/**
+	 * An arrow from the origin to `end`: line, cone tip, dashed line down to the ground plane
+	 * and a label beyond the tip.
+	 *
+	 * Args:
+	 *   end: tip position in scene units (already multiplied by VECTOR_SCALE).
+	 *   color: arrow colour.
+	 *   label: label text; null shows the vector's own coordinates (in input units).
+	 */
+	function makeArrow(end: THREE.Vector3, color: THREE.Color, label: string | null): THREE.Group {
+		const group = new THREE.Group();
+		const length = end.length();
+		if (length === 0) return group; // the zero vector has no direction to draw
+
+		const lineGeometry = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(), end]);
+		group.add(new THREE.Line(lineGeometry, new THREE.LineBasicMaterial({ color })));
+
+		// tip: 5% of the arrow's length, a 3-sided cone turned from +y onto the arrow
+		const coneHeight = length * 0.05;
+		const cone = new THREE.Mesh(
+			new THREE.ConeGeometry(coneHeight * 0.2, coneHeight, 3),
+			new THREE.MeshBasicMaterial({ color })
+		);
+		cone.position.copy(end);
+		cone.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), end.clone().normalize());
+		group.add(cone);
+
+		group.add(dashedLine(end, new THREE.Vector3(end.x, 0, end.z), 0x444444));
+
+		const text =
+			label ?? [end.x, end.y, end.z].map((c) => (c / VECTOR_SCALE).toFixed(2)).join(', ');
+		const sprite = createTextSprite(text, helperColor);
+		sprite.position.copy(end.clone().add(end.clone().normalize().multiplyScalar(LABEL_OFFSET)));
+		group.add(sprite);
+		return group;
+	}
+
+	/** The input vector's colour: its x, y, z read as r, g, b (negative parts stay dark). */
+	function vectorColor(v: Vec3): THREE.Color {
+		const clamp = (c: number) => Math.max(0, c);
+		return new THREE.Color(clamp(v.x), clamp(v.y), clamp(v.z));
+	}
+
+	/** Arc between a and b (radius ARC_RADIUS) with the angle in degrees at its middle. */
+	function drawAngle(group: THREE.Group, a: THREE.Vector3, b: THREE.Vector3) {
+		const angle = a.angleTo(b);
+		const normal = new THREE.Vector3().crossVectors(a, b);
+		if (angle === 0 || isNaN(angle) || normal.lengthSq() === 0) return; // parallel or zero
+		normal.normalize();
+
+		const segments = 32;
+		const points: THREE.Vector3[] = [];
+		for (let i = 0; i <= segments; i++) {
+			points.push(
+				a.clone().applyAxisAngle(normal, (angle * i) / segments).normalize().multiplyScalar(ARC_RADIUS)
+			);
+		}
+		const geometry = new THREE.BufferGeometry().setFromPoints(points);
+		group.add(new THREE.Line(geometry, new THREE.LineBasicMaterial({ color: helperColor })));
+
+		const middle = a.clone().applyAxisAngle(normal, angle / 2).normalize();
+		const label = createTextSprite(`${THREE.MathUtils.radToDeg(angle).toFixed(1)}°`, helperColor);
+		label.position.copy(middle.multiplyScalar(ARC_RADIUS + 0.3));
+		group.add(label);
+	}
+
+	/** Scalar projection of a onto b (both normalized) and the dashed line from a's tip to it. */
+	function drawDot(group: THREE.Group, a: THREE.Vector3, b: THREE.Vector3) {
+		if (a.lengthSq() === 0 || b.lengthSq() === 0) return;
+		const na = a.clone().normalize();
+		const nb = b.clone().normalize();
+		const projected = nb.clone().multiplyScalar(na.dot(nb) * VECTOR_SCALE);
+
+		group.add(makeArrow(projected, new THREE.Color(resultColors.dot), 'Scalar Projection'));
+		group.add(dashedLine(na.multiplyScalar(VECTOR_SCALE), projected, 0x39ff14, 0.1));
+	}
+
+	/** a x b as an arrow and the parallelogram a and b span (its area is the arrow's length). */
+	function drawCross(group: THREE.Group, a: THREE.Vector3, b: THREE.Vector3, showArea: boolean) {
+		const color = new THREE.Color(resultColors.cross);
+		const result = new THREE.Vector3().crossVectors(a, b);
+		group.add(makeArrow(result.clone().multiplyScalar(VECTOR_SCALE), color, 'Cross Product'));
+		if (!showArea || result.lengthSq() === 0) return;
+
+		const sa = a.clone().multiplyScalar(VECTOR_SCALE);
+		const sb = b.clone().multiplyScalar(VECTOR_SCALE);
+		const corner = sa.clone().add(sb);
+		const geometry = new THREE.BufferGeometry().setFromPoints([
+			new THREE.Vector3(), sa, corner,
+			new THREE.Vector3(), corner, sb
+		]);
+		const material = new THREE.MeshBasicMaterial({
+			color,
+			transparent: true,
+			opacity: 0.2,
+			side: THREE.DoubleSide,
+			depthWrite: false // so the vectors behind it stay visible
+		});
+		group.add(new THREE.Mesh(geometry, material));
+		group.add(dashedLine(sa, corner, color, 0.5));
+		group.add(dashedLine(sb, corner, color, 0.5));
+	}
+
+	function gridLine(offset: number, alongX: boolean, material: THREE.Material): THREE.Line {
+		const h = GRID_HALF_SIZE;
+		const points = alongX
+			? [new THREE.Vector3(-h, 0, offset), new THREE.Vector3(h, 0, offset)]
+			: [new THREE.Vector3(offset, 0, -h), new THREE.Vector3(offset, 0, h)];
+		return new THREE.Line(new THREE.BufferGeometry().setFromPoints(points), material);
+	}
+
+	/** A CSS colour variable as #rrggbb (the alpha of #rrggbbaa dropped); white if unreadable. */
+	function cssHexColor(variableName: string): string {
+		const value = getComputedStyle(document.documentElement).getPropertyValue(variableName).trim();
+		if (/^#[0-9a-f]{6}([0-9a-f]{2})?$/i.test(value)) return value.substring(0, 7);
+		console.warn(`CSS variable ${variableName} is "${value}", not a hex colour; using white.`);
+		return '#ffffff';
+	}
+
+	//				scene
+	//  --------------------------------------------------------------------------------------
+	onMount(() => {
+		const scene = new THREE.Scene();
+		scene.background = new THREE.Color(); // the page background, set with the theme below
+
+		const width = () => Math.max(1, viewport.clientWidth);
+		const height = () => Math.max(1, viewport.clientHeight);
+
+		const camera = new THREE.PerspectiveCamera(75, width() / height(), 0.1, 1000);
+		camera.position.set(0.0, 4.0, 16.0);
+		camera.lookAt(0, 0, 0);
+
+		const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+		renderer.setPixelRatio(window.devicePixelRatio);
+		renderer.setSize(width(), height());
+
+		const controls = new OrbitControls(camera, renderer.domElement);
+		// the gizmo's views, drag orbit, keys and the orthographic switch (renders with views.camera)
+		const views = new ViewController(camera, controls, { ortho: true });
+		view = views;
+
+		// grid and the x / z axes
+		const gridGroup = new THREE.Group();
+		for (let i = -GRID_HALF_SIZE; i < GRID_HALF_SIZE; i++) {
+			if (i === 0) continue;
+			gridGroup.add(gridLine(i, false, fadingGridLines), gridLine(i, true, fadingGridLines));
+		}
+		gridGroup.add(gridLine(0, true, fadingXAxis), gridLine(0, false, fadingYAxis));
+		scene.add(gridGroup);
+
+		// lights for imported models (the vectors use unlit materials)
+		const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+		directionalLight.position.set(10, 10, 10);
+		scene.add(new THREE.AmbientLight(0xffffff, 0.3), directionalLight);
+
+		// one group per part of the picture, rebuilt from the current state on every change
+		const vectorsGroup = new THREE.Group();
+		const angleGroup = new THREE.Group();
+		const dotGroup = new THREE.Group();
+		const crossGroup = new THREE.Group();
+		scene.add(vectorsGroup, angleGroup, dotGroup, crossGroup);
+
+		const options = { showProjection: true, showArea: true };
+		let v1 = get(STOREVECTOR1);
+		let v2 = get(STOREVECTOR2);
+		let product = get(ACTIVE_PRODUCT);
+
+		function redraw() {
+			for (const group of [vectorsGroup, angleGroup, dotGroup, crossGroup]) clearGroup(group);
+			const a = toThree(v1);
+			const b = toThree(v2);
+			vectorsGroup.add(
+				makeArrow(a.clone().multiplyScalar(VECTOR_SCALE), vectorColor(v1), null),
+				makeArrow(b.clone().multiplyScalar(VECTOR_SCALE), vectorColor(v2), null)
+			);
+			drawAngle(angleGroup, a, b);
+			if (product === 'dot' && options.showProjection) drawDot(dotGroup, a, b);
+			if (product === 'cross') drawCross(crossGroup, a, b, options.showArea);
+		}
+
+		// the grid follows the theme's text colour
+		// the viewport takes the page background (the same as the description's frame) and the
+		// grid the theme's text colour
+		const updateThemeColors = () => {
+			(scene.background as THREE.Color).set(cssHexColor('--bg'));
+			fadingGridLines.uniforms.uColor.value.set(cssHexColor('--col'));
+		};
+
+		// a model loaded in the settings overlay is shown here too, with the camera on it
+		let model: THREE.Object3D | null = null;
+		function showModel(value: THREE.Object3D | null) {
+			if (model) scene.remove(model);
+			model = value;
+			if (!model) return;
+			scene.add(model);
 			const box = new THREE.Box3().setFromObject(model);
 			const center = box.getCenter(new THREE.Vector3());
 			const size = box.getSize(new THREE.Vector3());
 			const maxDim = Math.max(size.x, size.y, size.z);
-			const fov = camera.fov * (Math.PI / 180);
-
-			let cameraZ = Math.abs((maxDim / 2) * Math.tan(fov / 2));
-			cameraZ *= 1.5; // Adjust for a better view
-
-			camera.position.set(center.x, center.y, center.z + cameraZ);
-			camera.lookAt(center.x, center.y, center.z);
-		}
-	});
-
-	//				functions
-	//  --------------------------------------------------------------------------------------
-
-	function scalarProduct(a: THREE.Vector3, b: THREE.Vector3): number {
-		a.normalize();
-		b.normalize();
-		return a.dot(b);
-	}
-
-	function updateScalarProjectionLine(vec1: THREE.Vector3, vec2: THREE.Vector3) {
-		if (!scene) {
-			return;
-		}
-		// Remove old line if it exists
-		if (scalarProjectionLine) {
-			scene.remove(scalarProjectionLine);
-			scalarProjectionLine.geometry.dispose();
-			(scalarProjectionLine.material as THREE.Material).dispose();
-			scalarProjectionLine = null;
+			const fov = THREE.MathUtils.degToRad(camera.fov);
+			const distance = Math.abs((maxDim / 2) * Math.tan(fov / 2)) * 1.5;
+			views.camera.position.set(center.x, center.y, center.z + distance);
+			controls.target.copy(center);
 		}
 
-		// Draw and add new line
-		scalarProjectionLine = drawReferenceLineForScalar(vec1, vec2);
-		scene.add(scalarProjectionLine);
-	}
+		// subscribe calls each handler once right away, which draws the first frame's state
+		const unsubscribers = [
+			STOREVECTOR1.subscribe((v) => ((v1 = v), redraw())),
+			STOREVECTOR2.subscribe((v) => ((v2 = v), redraw())),
+			ACTIVE_PRODUCT.subscribe((p) => ((product = p), redraw())),
+			theme.themeStore.subscribe(updateThemeColors),
+			modelStore.subscribe(showModel)
+		];
 
-	function updateDotProjection(vec1: THREE.Vector3, vec2: THREE.Vector3) {
-		if (!scene) return;
-
-		// remove old objects
-		if (threeVectorDot) scene.remove(threeVectorDot);
-		if (threeVectorTipDot) scene.remove(threeVectorTipDot);
-		if (threeVectorUpRefDot) scene.remove(threeVectorUpRefDot);
-		if (threeVectorTextDot) scene.remove(threeVectorTextDot);
-
-		const dir = vec2.clone().normalize();
-		const length = scalarProduct(vec1.clone(), vec2.clone()) * vectorScale;
-
-		threeVectorDot = drawVector(dir.x, dir.y, dir.z, length, new THREE.Color(0xc300ff));
-
-		scene.add(threeVectorDot);
-
-		threeVectorTipDot = drawTipOfVector(threeVectorDot);
-		scene.add(threeVectorTipDot);
-
-		threeVectorUpRefDot = drawReferenceLineToGroundPlane(threeVectorTipDot.position);
-		scene.add(threeVectorUpRefDot);
-
-		threeVectorTextDot = addVectorLabelAtTip(
-			threeVectorTipDot.position,
-			0.6,
-			'Scalar Projection',
-			'#666666'
-		);
-
-		if (threeVectorTipDot.position.length() > 0) {
-			scene.add(threeVectorTextDot);
+		//				ui
+		//  ----------------------------------------------------------------------------------
+		// the sliders start from the stores, so coming back to the page keeps the last vectors
+		const paneVector1 = { ...v1 };
+		const paneVector2 = { ...v2 };
+		const pane = new Pane({ title: 'Controls', container: paneHost });
+		for (const axis of ['x', 'y', 'z'] as const) {
+			pane
+				.addBinding(paneVector1, axis, { min: -1, max: 1, label: `Vec 1 ${axis.toUpperCase()}` })
+				.on('change', () => STOREVECTOR1.set({ ...paneVector1 }));
 		}
-	}
-
-	function drawReferenceLineForScalar(
-		tipPosition: THREE.Vector3,
-		projected: THREE.Vector3
-	): THREE.Line {
-		let start = tipPosition.clone().normalize();
-		let end = projected.clone().normalize();
-
-		end = end.multiplyScalar(scalarProduct(start, end));
-
-		start = start.multiplyScalar(vectorScale);
-		end = end.multiplyScalar(vectorScale);
-
-		// Create geometry
-		const geometry = new THREE.BufferGeometry().setFromPoints([start, end]);
-
-		// Create material (dashed line for better visual distinction)
-		const material = new THREE.LineDashedMaterial({
-			color: 0x39ff14, // Gray color
-			dashSize: 0.1,
-			gapSize: 0.05,
-			linewidth: 1,
-			transparent: true,
-			opacity: 0.1
-		});
-
-		// Create the line
-		const line = new THREE.Line(geometry, material);
-		line.computeLineDistances(); // Required for dashed lines
-
-		return line;
-	}
-
-	function updateAngleArc(vec1: THREE.Vector3, vec2: THREE.Vector3) {
-		if (!scene) return; // guard
-
-		// Remove previous arc and label if they exist
-		if (angleArc) {
-			scene.remove(angleArc);
-			angleArc.geometry.dispose();
-			(angleArc.material as THREE.Material).dispose();
-			angleArc = null;
-		}
-		if (angleLabel) {
-			scene.remove(angleLabel);
-			(angleLabel.material as THREE.SpriteMaterial).map?.dispose();
-			(angleLabel.material as THREE.Material).dispose();
-			angleLabel = null;
+		for (const axis of ['x', 'y', 'z'] as const) {
+			pane
+				.addBinding(paneVector2, axis, { min: -1, max: 1, label: `Vec 2 ${axis.toUpperCase()}` })
+				.on('change', () => STOREVECTOR2.set({ ...paneVector2 }));
 		}
 
-		// Compute angle
-		const radius = 1.5;
-		const segments = 32;
-		const angle = vec1.angleTo(vec2);
+		// tab order = PRODUCTS order ($lib/stores/vectors)
+		const tab = pane.addTab({ pages: [{ title: 'Scalar Product' }, { title: 'Vector Product' }] });
+		tab.pages[PRODUCTS.indexOf(product)].selected = true;
+		tab.on('select', (ev) => ACTIVE_PRODUCT.set(PRODUCTS[ev.index]));
+		tab.pages[0]
+			.addBinding(options, 'showProjection', { label: 'Projection' })
+			.on('change', redraw);
+		tab.pages[1].addBinding(options, 'showArea', { label: 'Parallelogram' }).on('change', redraw);
 
-		if (angle === 0 || isNaN(angle)) return;
-
-		const normal = new THREE.Vector3().crossVectors(vec1, vec2).normalize();
-		if (normal.length() === 0) return;
-
-		const arcPoints: THREE.Vector3[] = [];
-		for (let i = 0; i <= segments; i++) {
-			const t = i / segments;
-			const point = vec1
-				.clone()
-				.applyAxisAngle(normal, angle * t)
-				.normalize()
-				.multiplyScalar(radius);
-			arcPoints.push(point);
-		}
-
-		const geometry = new THREE.BufferGeometry().setFromPoints(arcPoints);
-		const material = new THREE.LineBasicMaterial({ color: 0x666666 });
-		angleArc = new THREE.Line(geometry, material);
-		scene.add(angleArc);
-
-		// Midpoint label
-		const midAngle = angle / 2;
-		const direction = vec1.clone().applyAxisAngle(normal, midAngle).normalize();
-		const labelOffset = direction.clone().multiplyScalar(0.3);
-		const labelPosition = direction.clone().multiplyScalar(radius).add(labelOffset);
-
-		angleLabel = createTextSprite((angle * (180 / Math.PI)).toFixed(1) + '°', '#666666', 64);
-		angleLabel.position.copy(labelPosition);
-		scene.add(angleLabel);
-	}
-
-	function updateVector(x: number, y: number, z: number, vectorIndex: number) {
-		if (typeof window === 'undefined') return;
-		if (typeof document === 'undefined') return;
-		if (vectorIndex == 1) {
-			if (threeVector1 && scene) {
-				scene.remove(threeVector1);
-				scene.remove(threeVectorTip1);
-				scene.remove(threeVectorUpRef1);
-				scene.remove(threeVectorText1);
-			}
-			threeVector1 = drawVector(x, y, z, vectorScale);
-			threeVectorTip1 = drawTipOfVector(threeVector1);
-			threeVectorUpRef1 = drawReferenceLineToGroundPlane(threeVectorTip1.position);
-			threeVectorText1 = addVectorLabelAtTip(threeVectorTip1.position);
-			if (scene) {
-				scene.add(threeVector1);
-				scene.add(threeVectorTip1);
-				scene.add(threeVectorUpRef1);
-				if (threeVectorTip1.position.length() > 0) scene.add(threeVectorText1);
-			}
-		} else if (vectorIndex == 2) {
-			if (threeVector2 && scene) {
-				scene.remove(threeVector2);
-				scene.remove(threeVectorTip2);
-				scene.remove(threeVectorUpRef2);
-				scene.remove(threeVectorText2);
-			}
-			threeVector2 = drawVector(x, y, z, vectorScale);
-			threeVectorTip2 = drawTipOfVector(threeVector2);
-			threeVectorUpRef2 = drawReferenceLineToGroundPlane(threeVectorTip2.position);
-			threeVectorText2 = addVectorLabelAtTip(threeVectorTip2.position);
-
-			if (scene) {
-				scene.add(threeVector2);
-				scene.add(threeVectorTip2);
-				scene.add(threeVectorUpRef2);
-				if (threeVectorTip2.position.length() > 0) scene.add(threeVectorText2);
-			}
-		}
-	}
-
-	function drawReferenceLineToGroundPlane(tipPosition: THREE.Vector3): THREE.Line {
-		// Create points for the reference line (from tip to y=0 plane)
-		const start = tipPosition.clone();
-		const end = new THREE.Vector3(tipPosition.x, 0, tipPosition.z); // Project to y=0 plane
-
-		// Create geometry
-		const geometry = new THREE.BufferGeometry().setFromPoints([start, end]);
-
-		// Create material (dashed line for better visual distinction)
-		const material = new THREE.LineDashedMaterial({
-			color: 0x444444, // Gray color
-			dashSize: 0.1,
-			gapSize: 0.05,
-			linewidth: 1
-		});
-
-		// Create the line
-		const line = new THREE.Line(geometry, material);
-		line.computeLineDistances(); // Required for dashed lines
-
-		return line;
-	}
-
-	function updateSceneBackground(backgroundColor: string = '#ffffff') {
-		if (backgroundColor == '#ffffff') {
-			backgroundColor = adaptCSSColor(getCSSVariable('--bg'));
-		}
-		if (!scene) return;
-		// scene.background = new THREE.Color(backgroundColor);
-		scene.background = new THREE.Color('#363636');
-		updateGridColor(currentTheme);
-	}
-
-	function getCSSVariable(variableName: string): string {
-		if (typeof window !== 'undefined') {
-			return getComputedStyle(document.documentElement).getPropertyValue(variableName).trim();
-		}
-		console.log('window not found.');
-		return ''; // Fallback for non-browser environments
-	}
-
-	function adaptCSSColor(color: string): string {
-		// Check if the color is empty or invalid
-		if (!color || typeof color !== 'string') {
-			console.warn(`Invalid color input: "${color}". Defaulting to white.`);
-			return '#ffffff';
-		}
-
-		// Handle 8-character hex colors (e.g., #f6f6f6ff)
-		if (color.startsWith('#') && color.length === 9) {
-			// Remove the alpha channel and return the 6-character hex
-			return color.substring(0, 7);
-		}
-
-		// Validate and return valid 6-character hex colors
-		if (color.startsWith('#') && color.length === 7) {
-			return color;
-		}
-
-		// Default to white if invalid color
-		console.warn(`Invalid color input: "${color}". Defaulting to white.`);
-		return '#ffffff';
-	}
-
-	function updateGridColor(theme: string) {
-		const gridColor = adaptCSSColor(getCSSVariable('--col'));
-		fadingGridLines.uniforms.uColor.value.set(gridColor);
-	}
-
-	function getSimpleLine(
-		half_size: number,
-		offset: number,
-		axis: string,
-		material: THREE.Material
-	) {
-		let points;
-		if (axis == 'z')
-			points = [new THREE.Vector3(-half_size, 0, 0), new THREE.Vector3(half_size, 0, 0)];
-		else points = [new THREE.Vector3(0, 0, -half_size), new THREE.Vector3(0, 0, half_size)];
-
-		const geometry = new THREE.BufferGeometry().setFromPoints(points);
-		const line = new THREE.Line(geometry, material);
-		if (axis == 'z') line.position.z = offset;
-		else line.position.x = offset;
-
-		return line;
-	}
-
-	function createTextSprite(message: string, color = 'white', fontSize = 48): THREE.Sprite {
-		const canvas = document.createElement('canvas');
-		const context = canvas.getContext('2d')!;
-		canvas.width = 512;
-		canvas.height = 256;
-
-		context.font = `${fontSize}px Arial`;
-		context.fillStyle = color;
-		context.textAlign = 'center';
-		context.fillText(message, canvas.width / 2, canvas.height / 2 + fontSize / 2);
-
-		const texture = new THREE.CanvasTexture(canvas);
-		const material = new THREE.SpriteMaterial({ map: texture, transparent: true });
-		const sprite = new THREE.Sprite(material);
-		sprite.scale.set(2, 1, 1); // Adjust based on font size and canvas ratio
-		return sprite;
-	}
-
-	function addVectorLabelAtTip(
-		tipPosition: THREE.Vector3,
-		offsetScalar: number = 0.6,
-		text: string | null = null,
-		color: string = '#666666'
-	): THREE.Sprite {
-		let labelText = text;
-
-		// Default text = vector coordinates
-		if (!labelText) {
-			const posx = tipPosition.x / vectorScale;
-			const posy = tipPosition.y / vectorScale;
-			const posz = tipPosition.z / vectorScale;
-
-			labelText = `${posx.toFixed(2)}, ${posy.toFixed(2)}, ${posz.toFixed(2)}`;
-		}
-
-		const textSprite = createTextSprite(labelText, color, 64);
-
-		// Offset from vector tip
-		const direction = tipPosition.clone().normalize();
-		const offset = direction.multiplyScalar(offsetScalar);
-
-		textSprite.position.copy(tipPosition.clone().add(offset));
-
-		return textSprite;
-	}
-
-	function drawVector(
-		x: number,
-		y: number,
-		z: number,
-		scale: number = 1,
-		color: THREE.Color | null = null
-	): THREE.Line {
-		// Scale the vector
-		const scaledX = x * scale;
-		const scaledY = y * scale;
-		const scaledZ = z * scale;
-
-		// Create the points for the vector
-		const start = new THREE.Vector3(0, 0, 0);
-		const end = new THREE.Vector3(scaledX, scaledY, scaledZ);
-
-		// Geometry
-		const geometry = new THREE.BufferGeometry().setFromPoints([start, end]);
-
-		// Use provided color or fallback to vector RGB
-		const finalColor = color ?? new THREE.Color(scaledX / scale, scaledY / scale, scaledZ / scale);
-
-		const material = new THREE.LineBasicMaterial({
-			color: finalColor
-		});
-
-		return new THREE.Line(geometry, material);
-	}
-
-	// Function to create the cone tip based on the vector
-	function drawTipOfVector(vectorLine: THREE.Line, scale: number = 1): THREE.Mesh {
-		// Extract the start and end points of the vector from the line's geometry
-		const start = vectorLine.geometry.attributes.position.array.slice(0, 3); // First 3 values are start point
-		const end = vectorLine.geometry.attributes.position.array.slice(3, 6); // Next 3 values are end point
-
-		// Create the vector direction from start to end
-		const vector = new THREE.Vector3(end[0] - start[0], end[1] - start[1], end[2] - start[2]);
-
-		// Scale the vector
-		const scaledLength = vector.length() * scale;
-
-		// Create geometry for the cone
-		const coneHeight = scaledLength * 0.05; // Height of the cone is 5% of the vector length
-		const coneRadius = coneHeight * 0.2; // Radius of the cone, adjust this for size preference
-		const coneGeometry = new THREE.ConeGeometry(coneRadius, coneHeight, 3);
-
-		// Extract the color from the vector's material
-		const material = vectorLine.material as THREE.LineBasicMaterial;
-		const color = material.color;
-
-		// Create material for the cone with the same color as the vector
-		const coneMaterial = new THREE.MeshBasicMaterial({ color: color });
-
-		// Create the cone mesh
-		const cone = new THREE.Mesh(coneGeometry, coneMaterial);
-
-		// // Position the cone at the tip of the vector (end)
-		const conePosition = new THREE.Vector3(end[0], end[1], end[2]);
-		cone.position.copy(conePosition);
-
-		// Align the cone's height axis (z-axis) with the direction of the vector
-		const direction = vector.clone().normalize();
-
-		// Rotate the cone to point along the vector's direction
-		cone.lookAt(cone.position.clone().add(direction));
-		cone.rotateX(Math.PI / 2); // Rotate 90 degrees around the X-axis
-
-		// Return only the cone (tip of the vector)
-		return cone;
-	}
-
-	//				events
-	//  --------------------------------------------------------------------------------------
-	onMount(() => {
-		// Set up the scene
-		// -------------------------------------------------------------------------------
-		scene = new THREE.Scene();
-		// scene.background = new THREE.Color(0xffffff);
-
-		// setting up color theme on init
-		// -------------------------------------------------------------------------------
-		const getCSSVariable = (variableName: string): string => {
-			if (typeof window !== 'undefined' && typeof document !== 'undefined') {
-				return getComputedStyle(document.documentElement).getPropertyValue(variableName).trim();
-			}
-			console.warn('window or document not found, returning default value');
-			return ''; // Fallback for non-browser environments
+		//				input and loop
+		//  ----------------------------------------------------------------------------------
+		const keyStates: Record<string, boolean> = {};
+		const onKeyDown = (event: KeyboardEvent) => {
+			// typing a value into the pane must not move the camera
+			if (event.target instanceof HTMLInputElement) return;
+			keyStates[event.key.toLowerCase()] = true;
 		};
-		let backgroundColor = getCSSVariable('--bg');
-		backgroundColor = adaptCSSColor(backgroundColor);
-		updateSceneBackground(backgroundColor);
+		const onKeyUp = (event: KeyboardEvent) => (keyStates[event.key.toLowerCase()] = false);
+		// follows the area's size: window resizes and dragging the divider between the areas
+		const resizeObserver = new ResizeObserver(() => {
+			renderer.setSize(width(), height());
+			views.resize(width(), height());
+		});
+		resizeObserver.observe(viewport);
+		window.addEventListener('keydown', onKeyDown);
+		window.addEventListener('keyup', onKeyUp);
 
-		// Set up the camera
-		// -------------------------------------------------------------------------------
-		camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-		// Set up the renderer
-		// -------------------------------------------------------------------------------
-		const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
-		renderer.setSize(window.innerWidth, window.innerHeight);
-
-		// viewport gizmo or navigation gizmo
-		const controls = new OrbitControls(camera, renderer.domElement);
-		const gizmo = new ViewportGizmo(camera, renderer, ViewportGizmoOptions);
-		gizmo.attachControls(controls);
-
-		// camera.position.set(-7.3, 5, 6.9);
-		camera.position.set(0.0, 4.0, 16.0);
-		// camera.up.set(0, 0, 1);
-		camera.lookAt(0, 0, 0);
-
-		// Handle window resize
-		const resize = () => {
-			renderer.setSize(window.innerWidth, window.innerHeight);
-			camera.aspect = window.innerWidth / window.innerHeight;
-			camera.updateProjectionMatrix();
-		};
-		window.addEventListener('resize', resize);
-
-		// Add scene nodes
-		// -------------------------------------------------------------------------------
-
-		//				drawing grid
-		for (let i = -10; i < 10; i++) {
-			if (i != 0) {
-				scene.add(getSimpleLine(10, i, 'x', fadingGridLines));
-				scene.add(getSimpleLine(10, i, 'z', fadingGridLines));
-			}
+		function moveCamera() {
+			const camera = views.camera; // the active one, perspective or orthographic
+			const forward = camera.getWorldDirection(new THREE.Vector3());
+			const right = new THREE.Vector3(1, 0, 0).applyQuaternion(camera.quaternion);
+			if (keyStates['w']) camera.position.addScaledVector(forward, MOVE_SPEED);
+			if (keyStates['s']) camera.position.addScaledVector(forward, -MOVE_SPEED);
+			if (keyStates['a']) camera.position.addScaledVector(right, -MOVE_SPEED);
+			if (keyStates['d']) camera.position.addScaledVector(right, MOVE_SPEED);
 		}
 
-		// 				drawing z,x implication axis
-		scene.add(getSimpleLine(10, 0, 'z', fadingXAxis));
-		scene.add(getSimpleLine(10, 0, 'x', fadingYAxis));
-
-		// 				Parameters for vector drawing
-		const length = 0.2; // Length of each vector
-		const angleIncrement = 45; // Angle increment between vectors in degrees
-		const numVectors = 360 / angleIncrement; // Number of vectors (360 degrees / angleinc)
-
-		// 				vector 1
-		scene.add(threeVector1);
-
-		threeVectorTip1 = drawTipOfVector(threeVector1);
-		scene.add(threeVectorTip1);
-
-		threeVectorUpRef1 = drawReferenceLineToGroundPlane(threeVectorTip1.position);
-		scene.add(threeVectorUpRef1);
-
-		//				reference to plane
-		threeVectorText1 = addVectorLabelAtTip(threeVectorTip1.position);
-		if (threeVectorTip1.position.length() > 0) scene.add(threeVectorText1);
-
-		// 				vector 2
-		scene.add(threeVector2);
-
-		threeVectorTip2 = drawTipOfVector(threeVector2);
-		scene.add(threeVectorTip2);
-
-		//				reference to plane
-		threeVectorUpRef2 = drawReferenceLineToGroundPlane(threeVectorTip2.position);
-		scene.add(threeVectorUpRef2);
-
-		threeVectorText2 = addVectorLabelAtTip(threeVectorTip2.position);
-		if (threeVectorTip2.position.length() > 0) scene.add(threeVectorText2);
-
-		// show angle
-		// -------------------------------------------------------------------------------
-		const vec1 = new THREE.Vector3(paneVector1.x, paneVector1.y, paneVector1.z);
-		const vec2 = new THREE.Vector3(paneVector2.x, paneVector2.y, paneVector2.z);
-		updateAngleArc(vec1, vec2);
-		updateScalarProjectionLine(vec1, vec2);
-
-		// draw vector representing the dot products
-		// -------------------------------------------------------------------------------
-		// non existent on initial state
-
-		// Add ambient and directional lights for better visibility of models
-		// -------------------------------------------------------------------------------
-		const ambientLight = new THREE.AmbientLight(0xffffff, 0.3); // Adjust intensity as needed
-		scene.add(ambientLight);
-
-		const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
-		directionalLight.position.set(10, 10, 10);
-		scene.add(directionalLight);
-
-		// add ui
-		// -------------------------------------------------------------------------------
-		pane = new Pane({ title: 'Controls' });
-		const tab = pane.addTab({
-			pages: [{ title: 'Scalar Product' }, { title: 'Vector Product' }]
-		});
-		// Vector 1 bindings with custom labels
-		tab.pages[0]
-			.addBinding(paneVector1, 'x', { min: -1, max: 1, label: 'Vec 1 X' })
-			.on('change', () => {
-				STOREVECTOR1.set({ ...paneVector1 });
-			});
-		tab.pages[0]
-			.addBinding(paneVector1, 'y', { min: -1, max: 1, label: 'Vec 1 Y' })
-			.on('change', () => {
-				STOREVECTOR1.set({ ...paneVector1 });
-			});
-		tab.pages[0]
-			.addBinding(paneVector1, 'z', { min: -1, max: 1, label: 'Vec 1 Z' })
-			.on('change', () => {
-				STOREVECTOR1.set({ ...paneVector1 });
-			});
-
-		// Vector 2 bindings with custom labels
-		tab.pages[0]
-			.addBinding(paneVector2, 'x', { min: -1, max: 1, label: 'Vec 2 X' })
-			.on('change', () => {
-				STOREVECTOR2.set({ ...paneVector2 });
-			});
-		tab.pages[0]
-			.addBinding(paneVector2, 'y', { min: -1, max: 1, label: 'Vec 2 Y' })
-			.on('change', () => {
-				STOREVECTOR2.set({ ...paneVector2 });
-			});
-		tab.pages[0]
-			.addBinding(paneVector2, 'z', { min: -1, max: 1, label: 'Vec 2 Z' })
-			.on('change', () => {
-				STOREVECTOR2.set({ ...paneVector2 });
-			});
-
-		// 				assistants
-		// tab.pages[0]
-		// 	.addBinding({ showGroundProjections }, 'showGroundProjections', {
-		// 		label: 'Ground Projections'
-		// 	})
-		// 	.on('change', (ev) => {
-		// 		showGroundProjections = ev.value;
-		// 	});
-
-		// tab.pages[0]
-		// 	.addBinding({ showAngleArc }, 'showAngleArc', { label: 'Angle Arc' })
-		// 	.on('change', (ev) => {
-		// 		showAngleArc = ev.value;
-		// 	});
-
-		// tab.pages[0]
-		// 	.addBinding({ showAngleLabel }, 'showAngleLabel', { label: 'Angle Text' })
-		// 	.on('change', (ev) => {
-		// 		showAngleLabel = ev.value;
-		// 	});
-
-		// tab.pages[0]
-		// 	.addBinding({ showTipText }, 'showTipText', { label: 'Tip Text' })
-		// 	.on('change', (ev) => {
-		// 		showTipText = ev.value;
-		// 	});
-
-		const btn = tab.pages[0].addButton({
-			title: 'Animate Scaler Product'
-			// label: 'counter' // optional
-		});
-
-		// add controls
-		// -------------------------------------------------------------------------------
-		const movementSpeed = 0.1;
-		const rotationSpeed = 0.02;
-
-		function updateCamera() {
-			if (keyStates['w']) {
-				// Move forward
-				camera.position.add(
-					camera.getWorldDirection(new THREE.Vector3()).multiplyScalar(movementSpeed)
-				);
-			}
-			if (keyStates['s']) {
-				// Move backward
-				camera.position.add(
-					camera.getWorldDirection(new THREE.Vector3()).multiplyScalar(-movementSpeed)
-				);
-			}
-			if (keyStates['a']) {
-				// Strafe left
-				const left = new THREE.Vector3(-1, 0, 0);
-				left.applyQuaternion(camera.quaternion);
-				camera.position.add(left.multiplyScalar(movementSpeed));
-			}
-			if (keyStates['d']) {
-				// Strafe right
-				const right = new THREE.Vector3(1, 0, 0);
-				right.applyQuaternion(camera.quaternion);
-				camera.position.add(right.multiplyScalar(movementSpeed));
-			}
-		}
-
-		// Track key states
-		window.addEventListener('keydown', (event) => (keyStates[event.key.toLowerCase()] = true));
-		window.addEventListener('keyup', (event) => (keyStates[event.key.toLowerCase()] = false));
-
-		// Animation loop
+		let frame = 0;
 		function animate() {
-			requestAnimationFrame(animate);
-
-			renderer.render(scene, camera);
+			frame = requestAnimationFrame(animate);
+			moveCamera();
+			views.update();
 			controls.update();
-			gizmo.render();
-
-			updateCamera(); // Update camera movement
+			renderer.render(scene, views.camera);
 		}
 		animate();
 
-		window.onresize = () => {
-			//... Scene's resize logic
-
-			gizmo.update();
-		};
-
-		// Clean up on unmount
 		return () => {
-			window.removeEventListener('resize', resize);
-			window.removeEventListener('keydown', (event) => (keyStates[event.key.toLowerCase()] = true));
-			window.removeEventListener('keyup', (event) => (keyStates[event.key.toLowerCase()] = false));
+			cancelAnimationFrame(frame);
+			window.removeEventListener('keydown', onKeyDown);
+			window.removeEventListener('keyup', onKeyUp);
+			resizeObserver.disconnect();
+			for (const unsubscribe of unsubscribers) unsubscribe();
+			if (model) scene.remove(model); // the model belongs to the store, not to this scene
+			pane.dispose();
+			views.dispose();
+			view = undefined;
+			controls.dispose();
+			for (const group of [vectorsGroup, angleGroup, dotGroup, crossGroup]) clearGroup(group);
+			// grid lines: free their geometry only, the fading materials are shared module objects
+			gridGroup.traverse((obj) => (obj as THREE.Line).geometry?.dispose());
+			renderer.dispose();
 		};
-	});
-
-	onDestroy(() => {
-		if (pane) {
-			pane.dispose(); // Properly dispose the Tweakpane instance
-			// pane = null;
-		}
 	});
 </script>
 
-<canvas bind:this={canvas} style="display: block; margin: 0; padding: 0; overflow: hidden;"
-></canvas>
+<div class="viewport" bind:this={viewport}>
+	<canvas bind:this={canvas}></canvas>
+	<div class="pane-host" bind:this={paneHost}></div>
+	{#if view}<ViewGizmo controller={view} />{/if}
+</div>
+
+<style>
+	/* fills its area; the gizmo and the pane are placed inside it, relative to this box */
+	.viewport {
+		position: absolute;
+		inset: 0;
+		overflow: hidden;
+	}
+	canvas {
+		display: block;
+	}
+	.pane-host {
+		position: absolute;
+		top: 0.5rem;
+		right: 0.5rem;
+		width: 256px; /* Tweakpane's default width */
+		max-width: calc(100% - 1rem);
+		max-height: calc(100% - 1rem);
+		/* only a short viewport scrolls the pane, vertically: a vertical scrollbar takes width
+		   from the 256px, which made Tweakpane's rows overflow sideways and added a horizontal one */
+		overflow-x: hidden;
+		overflow-y: auto;
+		scrollbar-width: thin;
+		scrollbar-color: rgba(255, 255, 255, 0.18) transparent;
+		z-index: 10;
+	}
+</style>

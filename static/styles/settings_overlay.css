@@ -17,6 +17,9 @@ p {
 	display: flex;
 	justify-content: center;
 	align-items: center;
+	/* above every page: the vector page's framed areas are fixed too and came later in the
+	   page, so they covered the open overlay (only its upload button showed through a gap) */
+	z-index: 3000;
 }
 
 .overlay-content input[type='file'] {
