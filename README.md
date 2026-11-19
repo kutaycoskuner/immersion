@@ -12,7 +12,7 @@
     <img alt="SvelteKit 2" src="https://img.shields.io/badge/SvelteKit-2-orange?logo=svelte&logoColor=white" />
     <img alt="Svelte 5" src="https://img.shields.io/badge/Svelte-5-orange?logo=svelte&logoColor=white" />
     <img alt="Three.js" src="https://img.shields.io/badge/Three.js-0.180-black?logo=three.js&logoColor=white" />
-    <img alt="Version" src="https://img.shields.io/badge/Version-0.33.0-blue" />
+    <img alt="Version" src="https://img.shields.io/badge/Version-0.34.0-blue" />
     <img alt="Project Start" src="https://img.shields.io/badge/project_start-05_Jan_2025-green" />
     <img alt="Last Update" src="https://img.shields.io/github/last-commit/kutaycoskuner/immersion/dev" />
 </p>
@@ -77,22 +77,26 @@ pnpm build
 pnpm preview
 ```
 
-The live site is the built output, published from the `manual-deploy` branch (`docs/`).
+More in [development](documentation/development.md): deployment, version bar, how a scene is built and cleaned up.
+
+# Docs
+
+- [Vectors page](documentation/vectors-page.md): dot and cross product, the Controls pane, what the viewport draws, changing the texts
+- [Transformations page](documentation/transformations-page.md): translation matrix, editable matrices, the stage bar, how M(t) works, adding the next transformation
+- [Viewport gizmo](documentation/viewport-gizmo.md): axis views, drag orbit, keys, orthographic switch, adding it to a scene
+- [Page layout](documentation/page-layout.md): framed areas, the draggable split, descriptions as data with KaTeX, fit to width, matrices with inputs
+- [Development](documentation/development.md): commands, paths and deployment, version and last update, scene lifecycle, shared state
 
 # Pages
 
-The top-left links switch between the pages; the bottom-left bar links to this repository, three.js and other projects, and shows the version and last update (the build date). Esc opens the settings overlay, where a `.gltf` model can be loaded into the scene.
+The top-left links switch between the pages; the bottom-left bar links to this repository, three.js and other projects and shows the version and last update. Esc opens the settings overlay, where a `.gltf` model can be loaded into the scene. In the 3d scenes: drag to orbit, wheel to zoom, the [viewport gizmo](documentation/viewport-gizmo.md) bottom right; W A S D move the camera on the vectors, display model, motion animation and pixel shader pages.
 
-- **vectors** (`/`): two vectors you set with the sliders of the control pane, the angle between them, and a step by step description of the product chosen in the pane's tab
-    - laid out in two framed areas (faint pixel-corner frames, as in imge's matrix calculator): the description on the left, its steps in sections split by dashed lines, scrolling on its own, the viewport on the right; drag the gap between them to resize (double-click resets, the split is remembered), narrow screens stack them
-    - *Scalar Product*: the dot product of the normalized vectors, drawn as the scalar projection of v1 onto v2
-    - *Vector Product*: the cross product v1 x v2, drawn as a vector with the parallelogram whose area is its length
+- **vectors** (`/`): two vectors and a step by step description of their dot or cross product, with the live values ([more](documentation/vectors-page.md))
+- **transformations** (`/transformations`): a cube translated by a matrix you type in, with a 0..1 bar for the stage of the move ([more](documentation/transformations-page.md))
 - **unfolding cube** (`/unfolding`): a cube that unfolds into its net while the mouse is over it
 - **display model** (`/import_gltf`): a lit scene for a model loaded in the settings overlay
 - **motion animation** (`/keyframe`): a gltf model playing its keyframe animation
 - **pixel shader** (`/pixel`): low resolution render with colour quantization, depth + normal outlines, instanced grass with wind sway and a moving point light
-
-Controls in the 3d scenes: drag to orbit, wheel to zoom, W A S D to move the camera. The viewport gizmo (bottom right, our own, Blender style) turns with the camera: click an axis to view from there (click it again for the opposite side), drag it to orbit, its button resets the view. Keys: 1 front, 3 right, 7 top, 9 opposite, . or Home reset view; on the vectors page also 5 and the gizmo button for orthographic / perspective.
 
 # Features
 
@@ -102,7 +106,7 @@ Controls in the 3d scenes: drag to orbit, wheel to zoom, W A S D to move the cam
 - [x] settings overlay with gltf model import
 - [x] vectors with cone tips, coordinate labels and ground plane references
 - [x] vector controls on the ui (tweakpane)
-- [x] own viewport gizmo (axis views, drag orbit, numpad keys, reset view, orthographic switch on the vectors page), replacing the three-viewport-gizmo library
+- [x] own viewport gizmo (axis views, drag orbit, numpad keys, reset view, orthographic switch on the vectors and transformations pages), replacing the three-viewport-gizmo library
 - [x] math rendering with katex (the vector descriptions, markdown)
 - [x] dot product steps, angle arc between the vectors, scalar projection vector and line
 - [x] cross product steps, cross product vector and its parallelogram
@@ -113,6 +117,8 @@ Controls in the 3d scenes: drag to orbit, wheel to zoom, W A S D to move the cam
 - [x] pixel scene: gpu instancing with a custom shader, billboarded alpha textured grass, wind sway
 - [x] pixel scene: point light interaction, ground colour passed to the grass, colour quantization
 - [x] pixel scene: depth + normal screen space outlines, pixelization
+- [x] transformations page: translation matrix, before / after stages, cube moved by the matrix
+- [x] transformations: draggable 0..1 bar for the stage t, all values follow it
 - [ ] steps between the vectors: normalize, then move from vector 1 to vector 2
 - [ ] markdown rendering with footnotes and toc
 - [ ] json rendering

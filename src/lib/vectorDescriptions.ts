@@ -1,21 +1,15 @@
 // -----------------------------------------------------------------------------------------
 //   author          : Kutay Coskuner
 //   ai-contributors : Claude Opus 5.5 (claude-opus-5-5)
-//   last update     : 2026-11-14
+//   last update     : 2026-11-19
 //   disclaimer      : Provided as is, without warranty of any kind; use at your own risk.
 //                     Check outputs before relying on them.
 // -----------------------------------------------------------------------------------------
 // Texts of the vector page's description, one list of sections per product, rendered by
-// ProductDescription.svelte. Text is plain with inline math between $ signs; a
-// { formula } block names a live formula the product's component computes from the current
-// vectors (DotProduct.svelte / CrossProduct.svelte), so the words can change here without
-// touching the code.
-
-export type Block = { text: string } | { formula: string };
-export interface Section {
-	title: string;
-	blocks: Block[];
-}
+// DescriptionSections.svelte (shape in $lib/description). A { formula } block names a live
+// formula the product's component computes from the current vectors (DotProduct.svelte /
+// CrossProduct.svelte), so the words can change here without touching the code.
+import type { Section } from '$lib/description';
 
 export const DOT_SECTIONS: Section[] = [
 	{

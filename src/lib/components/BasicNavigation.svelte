@@ -7,6 +7,7 @@
 <!-- src/lib/components/Nav.svelte -->
 <nav>
 	<a href="{base}/">vectors</a>
+	<a href="{base}/transformations">transformations</a>
 	<a href="{base}/unfolding">unfolding cube</a>
 	<a href="{base}/import_gltf">display model</a>
 	<a href="{base}/keyframe">motion animation</a>

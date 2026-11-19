@@ -5,7 +5,7 @@
 //   disclaimer      : Provided as is, without warranty of any kind; use at your own risk.
 //                     Check outputs before relying on them.
 // -----------------------------------------------------------------------------------------
-// TeX for the vector page's description (ProductDescription.svelte and the formulas of
+// TeX for the vector page's description (DescriptionSections.svelte and the formulas of
 // DotProduct.svelte / CrossProduct.svelte): rendering with KaTeX, text with inline $...$
 // math (the way imge's matrix calculator writes its descriptions), coloured numbers and
 // column vectors. KaTeX renders synchronously and is bundled, unlike the MathJax CDN script

@@ -8,9 +8,9 @@
 	// -----------------------------------------------------------------------------------------
 	// Description of the vector page's "Scalar Product" tab: the live formulas of the dot
 	// product (normalize, multiply and add) for the current vectors; the words around them are
-	// DOT_SECTIONS in $lib/vectorDescriptions, laid out by ProductDescription.svelte.
+	// DOT_SECTIONS in $lib/vectorDescriptions, laid out by DescriptionSections.svelte.
 	// Shown by src/routes/(app)/+page.svelte; the scene draws the matching scalar projection.
-	import ProductDescription from '$lib/components/ProductDescription.svelte';
+	import DescriptionSections from '$lib/components/DescriptionSections.svelte';
 	import { DOT_SECTIONS } from '$lib/vectorDescriptions';
 	import { labelColors, v1Colors, v2Colors } from '$lib/config/config-vector_colors';
 	import { columnVector, colored, num } from '$lib/vectorTex';
@@ -38,4 +38,4 @@
 	});
 </script>
 
-<ProductDescription sections={DOT_SECTIONS} {formulas} />
+<DescriptionSections sections={DOT_SECTIONS} {formulas} />

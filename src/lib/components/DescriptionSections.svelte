@@ -2,17 +2,19 @@
 	// -----------------------------------------------------------------------------------------
 	//   author          : Kutay Coskuner
 	//   ai-contributors : Claude Opus 5.5 (claude-opus-5-5)
-	//   last update     : 2026-11-14
+	//   last update     : 2026-11-19
 	//   disclaimer      : Provided as is, without warranty of any kind; use at your own risk.
 	//                     Check outputs before relying on them.
 	// -----------------------------------------------------------------------------------------
-	// The vector page's description as one block of sections separated by dashed lines, in the
-	// style of imge's matrix calculator description: a small title per section, text with
-	// inline KaTeX math, and display formulas. Sections come from $lib/vectorDescriptions; the
-	// live formulas (by name) from DotProduct.svelte / CrossProduct.svelte.
+	// A page description as one block of sections separated by dashed lines, in the style of
+	// imge's matrix calculator description: a small title per section, text with inline KaTeX
+	// math, and display formulas. Sections are page data ($lib/vectorDescriptions,
+	// $lib/transformDescriptions); the live formulas (by name) come from the page's component
+	// (DotProduct.svelte, CrossProduct.svelte, TranslationDescription.svelte).
 	import 'katex/dist/katex.min.css';
 	import { rich, tex } from '$lib/vectorTex';
-	import type { Section } from '$lib/vectorDescriptions';
+	import { fitWidth } from '$lib/actions/fitWidth';
+	import type { Section } from '$lib/description';
 
 	let { sections, formulas }: { sections: Section[]; formulas: Record<string, string> } = $props();
 </script>
@@ -24,8 +26,9 @@
 			{#if 'text' in block}
 				<p>{@html rich(block.text)}</p>
 			{:else}
-				<!-- a wide formula scrolls sideways inside its own line, never the page -->
-				<div class="formula">{@html tex(formulas[block.formula] ?? '', true)}</div>
+				<!-- a wide formula shrinks to the area's width (fitWidth), no sideways scrolling -->
+				{@const source = formulas[block.formula] ?? ''}
+				<div class="formula" use:fitWidth={source}>{@html tex(source, true)}</div>
 			{/if}
 		{/each}
 	</section>
@@ -55,8 +58,7 @@
 		max-width: 75ch;
 	}
 	.formula {
-		overflow-x: auto;
-		overflow-y: hidden;
+		overflow: hidden;
 		font-size: 0.95rem;
 	}
 	.formula :global(.katex-display) {

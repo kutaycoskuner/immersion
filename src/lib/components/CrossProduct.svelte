@@ -9,9 +9,9 @@
 	// Description of the vector page's "Vector Product" tab: the live formulas of the cross
 	// product (component formula, values, length = |v1||v2| sin angle) for the current
 	// vectors; the words around them are CROSS_SECTIONS in $lib/vectorDescriptions, laid out
-	// by ProductDescription.svelte. Shown by src/routes/(app)/+page.svelte; the scene draws the
+	// by DescriptionSections.svelte. Shown by src/routes/(app)/+page.svelte; the scene draws the
 	// result vector and its parallelogram in resultColors.cross.
-	import ProductDescription from '$lib/components/ProductDescription.svelte';
+	import DescriptionSections from '$lib/components/DescriptionSections.svelte';
 	import { CROSS_SECTIONS } from '$lib/vectorDescriptions';
 	import { labelColors, resultColors, v1Colors, v2Colors } from '$lib/config/config-vector_colors';
 	import { columnVector, colored, num } from '$lib/vectorTex';
@@ -49,4 +49,4 @@
 	});
 </script>
 
-<ProductDescription sections={CROSS_SECTIONS} {formulas} />
+<DescriptionSections sections={CROSS_SECTIONS} {formulas} />

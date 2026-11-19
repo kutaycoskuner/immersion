@@ -11,12 +11,18 @@
 // Run: pnpm test:unit --run
 import { describe, expect, it } from 'vitest';
 import { CROSS_SECTIONS, DOT_SECTIONS } from './vectorDescriptions';
+import { TRANSLATION_SECTIONS } from './transformDescriptions';
 import { columnVector, rich, tex } from './vectorTex';
 
 const ok = (html: string) => expect(html).not.toContain('katex-error');
 
 describe('description texts', () => {
-	for (const [name, sections] of [['dot', DOT_SECTIONS], ['cross', CROSS_SECTIONS]] as const) {
+	const pages = [
+		['dot', DOT_SECTIONS],
+		['cross', CROSS_SECTIONS],
+		['translation', TRANSLATION_SECTIONS]
+	] as const;
+	for (const [name, sections] of pages) {
 		it(`${name}: every inline formula renders`, () => {
 			for (const section of sections)
 				for (const block of section.blocks) if ('text' in block) ok(rich(block.text));

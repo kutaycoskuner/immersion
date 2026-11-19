@@ -26,7 +26,7 @@
 	import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 	import { ViewController } from '$lib/viewGizmo/viewController';
 	import ViewGizmo from '$lib/components/ViewGizmo.svelte';
-	import { fadingGridLines, fadingXAxis, fadingYAxis } from '$lib/materials/gridLines.mat';
+	import { applyThemeColors, clearGroup, createGrid, disposeGrid } from '$lib/three/sceneHelpers';
 	import { helperColor, resultColors } from '$lib/config/config-vector_colors';
 	import { modelStore } from '../../store/model_store';
 	import { theme } from '$lib/ColorTheme.svelte';
@@ -36,7 +36,6 @@
 	//				settings
 	//  --------------------------------------------------------------------------------------
 	const VECTOR_SCALE = 5; // a unit vector is drawn 5 grid squares long
-	const GRID_HALF_SIZE = 10;
 	const ARC_RADIUS = 1.5;
 	const LABEL_OFFSET = 0.6;
 	const MOVE_SPEED = 0.1; // WASD camera movement per frame
@@ -50,23 +49,6 @@
 	//  --------------------------------------------------------------------------------------
 	function toThree(v: Vec3): THREE.Vector3 {
 		return new THREE.Vector3(v.x, v.y, v.z);
-	}
-
-	/** Removes every child of a group and frees its geometry, materials and textures. */
-	function clearGroup(group: THREE.Group) {
-		for (const child of [...group.children]) {
-			group.remove(child);
-			child.traverse((obj) => {
-				const mesh = obj as THREE.Mesh;
-				mesh.geometry?.dispose();
-				const materials = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
-				for (const mat of materials) {
-					if (!mat) continue;
-					(mat as THREE.SpriteMaterial).map?.dispose();
-					mat.dispose();
-				}
-			});
-		}
 	}
 
 	function createTextSprite(message: string, color = 'white', fontSize = 64): THREE.Sprite {
@@ -208,27 +190,10 @@
 		group.add(dashedLine(sb, corner, color, 0.5));
 	}
 
-	function gridLine(offset: number, alongX: boolean, material: THREE.Material): THREE.Line {
-		const h = GRID_HALF_SIZE;
-		const points = alongX
-			? [new THREE.Vector3(-h, 0, offset), new THREE.Vector3(h, 0, offset)]
-			: [new THREE.Vector3(offset, 0, -h), new THREE.Vector3(offset, 0, h)];
-		return new THREE.Line(new THREE.BufferGeometry().setFromPoints(points), material);
-	}
-
-	/** A CSS colour variable as #rrggbb (the alpha of #rrggbbaa dropped); white if unreadable. */
-	function cssHexColor(variableName: string): string {
-		const value = getComputedStyle(document.documentElement).getPropertyValue(variableName).trim();
-		if (/^#[0-9a-f]{6}([0-9a-f]{2})?$/i.test(value)) return value.substring(0, 7);
-		console.warn(`CSS variable ${variableName} is "${value}", not a hex colour; using white.`);
-		return '#ffffff';
-	}
-
 	//				scene
 	//  --------------------------------------------------------------------------------------
 	onMount(() => {
 		const scene = new THREE.Scene();
-		scene.background = new THREE.Color(); // the page background, set with the theme below
 
 		const width = () => Math.max(1, viewport.clientWidth);
 		const height = () => Math.max(1, viewport.clientHeight);
@@ -247,12 +212,7 @@
 		view = views;
 
 		// grid and the x / z axes
-		const gridGroup = new THREE.Group();
-		for (let i = -GRID_HALF_SIZE; i < GRID_HALF_SIZE; i++) {
-			if (i === 0) continue;
-			gridGroup.add(gridLine(i, false, fadingGridLines), gridLine(i, true, fadingGridLines));
-		}
-		gridGroup.add(gridLine(0, true, fadingXAxis), gridLine(0, false, fadingYAxis));
+		const gridGroup = createGrid();
 		scene.add(gridGroup);
 
 		// lights for imported models (the vectors use unlit materials)
@@ -288,10 +248,7 @@
 		// the grid follows the theme's text colour
 		// the viewport takes the page background (the same as the description's frame) and the
 		// grid the theme's text colour
-		const updateThemeColors = () => {
-			(scene.background as THREE.Color).set(cssHexColor('--bg'));
-			fadingGridLines.uniforms.uColor.value.set(cssHexColor('--col'));
-		};
+		const updateThemeColors = () => applyThemeColors(scene);
 
 		// a model loaded in the settings overlay is shown here too, with the camera on it
 		let model: THREE.Object3D | null = null;
@@ -396,7 +353,7 @@
 			controls.dispose();
 			for (const group of [vectorsGroup, angleGroup, dotGroup, crossGroup]) clearGroup(group);
 			// grid lines: free their geometry only, the fading materials are shared module objects
-			gridGroup.traverse((obj) => (obj as THREE.Line).geometry?.dispose());
+			disposeGrid(gridGroup);
 			renderer.dispose();
 		};
 	});
