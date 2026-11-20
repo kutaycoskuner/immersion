@@ -1,6 +1,6 @@
 # Viewport gizmo
 
-The project's own viewport gizmo (Blender style), in the bottom-right corner of every 3d scene except the unfolding cube. It replaced the `three-viewport-gizmo` library and is taken from the gizmo of Bauteilerstellung-2.0, adapted to three.js axes (Y up, front = +Z) and English texts.
+The project's own viewport gizmo (Blender style), in the bottom-right corner of every 3d scene. It replaced the `three-viewport-gizmo` library and is taken from the gizmo of Bauteilerstellung-2.0, adapted to three.js axes (Y up, front = +Z) and English texts.
 
 ## Use
 
@@ -46,6 +46,7 @@ views.dispose();
 ```
 
 - place `{#if view}<ViewGizmo controller={view} />{/if}` inside a positioned box around the canvas (the gizmo sits in its bottom-right corner)
+- `views.keysEnabled = false` ignores the view keys, e.g. while a page wants its keys for something else
 - `ortho: true` only when the scene renders with `views.camera` (the pixel shader scene renders through camera layers and render targets, so it has no switch)
 
 ## Files

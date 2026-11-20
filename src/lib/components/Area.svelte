@@ -2,16 +2,19 @@
 	// -----------------------------------------------------------------------------------------
 	//   author          : Kutay Coskuner
 	//   ai-contributors : Claude Opus 5.5 (claude-opus-5-5)
-	//   last update     : 2026-11-14
+	//   last update     : 2026-11-20
 	//   disclaimer      : Provided as is, without warranty of any kind; use at your own risk.
 	//                     Check outputs before relying on them.
 	// -----------------------------------------------------------------------------------------
 	// One framed area of a page, in the style of imge's matrix calculator panels: a faint 1 px
 	// frame with pixelated corners (the corner pixel left empty), no shadow, and the title,
 	// small and lower case, in a gap of the top line at the left. `scroll` makes the body
-	// scroll on its own with a thin, faint scrollbar (text areas); without it the body is a
-	// plain box its content fills (the 3d viewport). Placed inside SplitAreas.svelte.
+	// scroll on its own with a thin, faint scrollbar (text areas) -- but content that is only a
+	// little too tall is scaled down to fit instead (fitHeight), so there is never a scrollbar
+	// that moves a few pixels; without `scroll` the body is a plain box its content fills (the
+	// 3d viewport). Placed inside SplitAreas.svelte.
 	import type { Snippet } from 'svelte';
+	import { fitHeight } from '$lib/actions/fitHeight';
 
 	let { title, scroll = false, children }: { title: string; scroll?: boolean; children: Snippet } =
 		$props();
@@ -19,9 +22,13 @@
 
 <section class="area">
 	<h2 class="title">{title}</h2>
-	<div class="body" class:scroll>
-		{@render children()}
-	</div>
+	{#if scroll}
+		<div class="body scroll" use:fitHeight>
+			<div class="content">{@render children()}</div>
+		</div>
+	{:else}
+		<div class="body">{@render children()}</div>
+	{/if}
 </section>
 
 <style>

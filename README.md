@@ -12,7 +12,7 @@
     <img alt="SvelteKit 2" src="https://img.shields.io/badge/SvelteKit-2-orange?logo=svelte&logoColor=white" />
     <img alt="Svelte 5" src="https://img.shields.io/badge/Svelte-5-orange?logo=svelte&logoColor=white" />
     <img alt="Three.js" src="https://img.shields.io/badge/Three.js-0.180-black?logo=three.js&logoColor=white" />
-    <img alt="Version" src="https://img.shields.io/badge/Version-0.35.0-blue" />
+    <img alt="Version" src="https://img.shields.io/badge/Version-0.36.0-blue" />
     <img alt="Project Start" src="https://img.shields.io/badge/project_start-05_Jan_2025-green" />
     <img alt="Last Update" src="https://img.shields.io/github/last-commit/kutaycoskuner/immersion/dev" />
 </p>
@@ -84,6 +84,7 @@ More in [development](documentation/development.md): deployment, version bar, ho
 - [Vectors page](documentation/vectors-page.md): dot and cross product, the Controls pane, what the viewport draws, changing the texts
 - [Transformations page](documentation/transformations-page.md): translation, scaling and rotation, the switch, editable matrices, the stage bar, how M(t) works, adding a transformation
 - [Viewport gizmo](documentation/viewport-gizmo.md): axis views, drag orbit, keys, orthographic switch, adding it to a scene
+- [Unfolding cube page](documentation/unfolding-page.md): use, toolbar, how the cube's hinges fold, the base for origami
 - [Page layout](documentation/page-layout.md): framed areas, the draggable split, descriptions as data with KaTeX, fit to width, matrices with inputs
 - [Development](documentation/development.md): commands, paths and deployment, version and last update, scene lifecycle, shared state
 
@@ -93,7 +94,7 @@ The top-left links switch between the pages; the bottom-left bar links to this r
 
 - **vectors** (`/`): two vectors and a step by step description of their dot or cross product, with the live values ([more](documentation/vectors-page.md))
 - **transformations** (`/transformations`): a cube transformed by a matrix you type in, translation, scaling or rotation (Euler angles), with a 0..1 bar for the stage; each has its own link: `/transformations/translation`, `/scaling`, `/rotation` ([more](documentation/transformations-page.md))
-- **unfolding cube** (`/unfolding`): a cube that unfolds into its net while the mouse is over it
+- **unfolding cube** (`/unfolding`): a cube that turns by itself after 4 s without input, stops when you move, unfolds into its flat net on a click; face names and Blender-style colours as toggles; the reference for the coming origami page ([more](documentation/unfolding-page.md))
 - **display model** (`/import_gltf`): a lit scene for a model loaded in the settings overlay
 - **motion animation** (`/keyframe`): a gltf model playing its keyframe animation
 - **pixel shader** (`/pixel`): low resolution render with colour quantization, depth + normal outlines, instanced grass with wind sway and a moving point light
@@ -113,6 +114,8 @@ The top-left links switch between the pages; the bottom-left bar links to this r
 - [x] vector page in resizable framed areas: description (sections, own scroll, thin scrollbar) and viewport; description texts as data with inline $...$ math
 - [x] version and last update (build date) in the bottom-left bar; the version comes from package.json
 - [x] unfolding cube
+- [x] unfolding cube reworked: full-window viewport, idle spin after 4 s (not when unfolded), click to unfold, face names and random colours as toolbar toggles
+- [ ] origami: flat sheet, fold lines, mountain / valley folds
 - [x] keyframe animation test scene
 - [x] pixel scene: gpu instancing with a custom shader, billboarded alpha textured grass, wind sway
 - [x] pixel scene: point light interaction, ground colour passed to the grass, colour quantization

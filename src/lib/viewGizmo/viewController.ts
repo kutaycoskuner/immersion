@@ -51,6 +51,8 @@ export class ViewController {
 	/** The camera to render with: the perspective one, or the orthographic one while ortho. */
 	camera: PerspectiveCamera | OrthographicCamera;
 	ortho = false;
+	/** false: the view keys are ignored (e.g. while the cursor is outside the viewport). */
+	keysEnabled = true;
 
 	private readonly orthographic: OrthographicCamera | null;
 	private readonly keyTarget: Window | HTMLElement;
@@ -166,6 +168,7 @@ export class ViewController {
 	//				internals
 	//  --------------------------------------------------------------------------------------
 	private readonly onKey = (event: KeyboardEvent) => {
+		if (!this.keysEnabled) return;
 		if (event.ctrlKey || event.metaKey || event.altKey) return; // leave browser shortcuts alone
 		const target = event.target as HTMLElement | null;
 		if (target?.closest?.('input, textarea, select, [contenteditable="true"]')) return; // typing
