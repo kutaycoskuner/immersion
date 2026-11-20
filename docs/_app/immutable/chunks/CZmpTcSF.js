@@ -1,1 +1,0 @@
-import{V as t,W as b,X as h,q as k,Y as q}from"./CwmTU4Mt.js";function u(r,i){return r===i||r?.[q]===i}function Y(r={},i,a,S){return t(()=>{var f,s;return b(()=>{f=s,s=[],h(()=>{r!==a(...s)&&(i(r,...s),f&&u(a(...f),r)&&i(null,...f))})}),()=>{k(()=>{s&&u(a(...s),r)&&i(null,...s)})}}),r}export{Y as b};
