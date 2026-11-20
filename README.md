@@ -12,7 +12,7 @@
     <img alt="SvelteKit 2" src="https://img.shields.io/badge/SvelteKit-2-orange?logo=svelte&logoColor=white" />
     <img alt="Svelte 5" src="https://img.shields.io/badge/Svelte-5-orange?logo=svelte&logoColor=white" />
     <img alt="Three.js" src="https://img.shields.io/badge/Three.js-0.180-black?logo=three.js&logoColor=white" />
-    <img alt="Version" src="https://img.shields.io/badge/Version-0.34.0-blue" />
+    <img alt="Version" src="https://img.shields.io/badge/Version-0.35.0-blue" />
     <img alt="Project Start" src="https://img.shields.io/badge/project_start-05_Jan_2025-green" />
     <img alt="Last Update" src="https://img.shields.io/github/last-commit/kutaycoskuner/immersion/dev" />
 </p>
@@ -82,7 +82,7 @@ More in [development](documentation/development.md): deployment, version bar, ho
 # Docs
 
 - [Vectors page](documentation/vectors-page.md): dot and cross product, the Controls pane, what the viewport draws, changing the texts
-- [Transformations page](documentation/transformations-page.md): translation matrix, editable matrices, the stage bar, how M(t) works, adding the next transformation
+- [Transformations page](documentation/transformations-page.md): translation, scaling and rotation, the switch, editable matrices, the stage bar, how M(t) works, adding a transformation
 - [Viewport gizmo](documentation/viewport-gizmo.md): axis views, drag orbit, keys, orthographic switch, adding it to a scene
 - [Page layout](documentation/page-layout.md): framed areas, the draggable split, descriptions as data with KaTeX, fit to width, matrices with inputs
 - [Development](documentation/development.md): commands, paths and deployment, version and last update, scene lifecycle, shared state
@@ -92,7 +92,7 @@ More in [development](documentation/development.md): deployment, version bar, ho
 The top-left links switch between the pages; the bottom-left bar links to this repository, three.js and other projects and shows the version and last update. Esc opens the settings overlay, where a `.gltf` model can be loaded into the scene. In the 3d scenes: drag to orbit, wheel to zoom, the [viewport gizmo](documentation/viewport-gizmo.md) bottom right; W A S D move the camera on the vectors, display model, motion animation and pixel shader pages.
 
 - **vectors** (`/`): two vectors and a step by step description of their dot or cross product, with the live values ([more](documentation/vectors-page.md))
-- **transformations** (`/transformations`): a cube translated by a matrix you type in, with a 0..1 bar for the stage of the move ([more](documentation/transformations-page.md))
+- **transformations** (`/transformations`): a cube transformed by a matrix you type in, translation, scaling or rotation (Euler angles), with a 0..1 bar for the stage; each has its own link: `/transformations/translation`, `/scaling`, `/rotation` ([more](documentation/transformations-page.md))
 - **unfolding cube** (`/unfolding`): a cube that unfolds into its net while the mouse is over it
 - **display model** (`/import_gltf`): a lit scene for a model loaded in the settings overlay
 - **motion animation** (`/keyframe`): a gltf model playing its keyframe animation
@@ -119,6 +119,9 @@ The top-left links switch between the pages; the bottom-left bar links to this r
 - [x] pixel scene: depth + normal screen space outlines, pixelization
 - [x] transformations page: translation matrix, before / after stages, cube moved by the matrix
 - [x] transformations: draggable 0..1 bar for the stage t, all values follow it
+- [x] transformations: scaling, switch between translation / scaling / rotation
+- [x] transformations: rotation with Euler angles (x, then y, then z), arc path
+- [ ] transformations: quaternion rotation
 - [ ] steps between the vectors: normalize, then move from vector 1 to vector 2
 - [ ] markdown rendering with footnotes and toc
 - [ ] json rendering

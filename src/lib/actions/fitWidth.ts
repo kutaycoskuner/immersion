@@ -10,7 +10,7 @@
 // a horizontal scrollbar; it grows back (up to the inherited size) when there is room again.
 // Re-fits when the element is resized and when `content` changes (pass what is rendered, e.g.
 // the formula string). Everything inside must be sized in em to scale with it (KaTeX is).
-// Used by DescriptionSections.svelte and TranslationPanel.svelte.
+// Used by DescriptionSections.svelte and TransformPanel.svelte.
 
 const MIN_SCALE = 0.45; // smaller than this is unreadable; it may then be cut at the edge
 

@@ -9,8 +9,8 @@
 // description and TransformScene.svelte), as plain numbers so the page shows exactly what
 // the scene applies. Row-major: m[row][col], the translation in the last column, as written
 // on paper (three.js' Matrix4.set takes the same order).
-// The animation stage t runs from 0 (before) to 1 (after): M(t) moves t of the way, so the
-// two-stage view now and a 0..1 slider later use the same function.
+// The animation stage t runs from 0 (before) to 1 (after): M(t) goes t of the way from the
+// identity to the full transformation (translation, scaling), so the 0..1 bar sets only t.
 import type { Vec3 } from '$lib/vectorMath';
 
 export type Mat4 = number[][]; // 4 rows of 4
@@ -33,6 +33,47 @@ export function translation(offset: Vec3, t = 1): Mat4 {
 	m[1][3] = offset.y * t + 0;
 	m[2][3] = offset.z * t + 0;
 	return m;
+}
+
+/** Scaling by `factors` about the origin, t of the way: each diagonal value goes from 1
+ *  (t = 0, identity) to its factor (t = 1). */
+export function scaling(factors: Vec3, t = 1): Mat4 {
+	const m = identity();
+	m[0][0] = 1 + (factors.x - 1) * t + 0; // + 0: no "-0"
+	m[1][1] = 1 + (factors.y - 1) * t + 0;
+	m[2][2] = 1 + (factors.z - 1) * t + 0;
+	return m;
+}
+
+/** a · b (4x4). */
+export function multiply(a: Mat4, b: Mat4): Mat4 {
+	return a.map((row) => [0, 1, 2, 3].map((c) => row.reduce((sum, v, k) => sum + v * b[k][c], 0)));
+}
+
+/** Rotation about one axis by `degrees` (right-handed: counter-clockwise looking from + at
+ *  the origin). */
+export function axisRotation(axis: 'x' | 'y' | 'z', degrees: number): Mat4 {
+	const a = (degrees * Math.PI) / 180;
+	const c = Math.cos(a);
+	const s = Math.sin(a);
+	const m = identity();
+	const [i, j] = axis === 'x' ? [1, 2] : axis === 'y' ? [2, 0] : [0, 1];
+	m[i][i] = c;
+	m[i][j] = -s;
+	m[j][i] = s;
+	m[j][j] = c;
+	return m;
+}
+
+/** Rotation by the angles (degrees) about x, then y, then z: R = Rz · Ry · Rx; at the
+ *  stage t every angle is t of its value, so a point moves along an arc. */
+export function rotation(degrees: Vec3, t = 1): Mat4 {
+	const m = multiply(
+		axisRotation('z', degrees.z * t),
+		multiply(axisRotation('y', degrees.y * t), axisRotation('x', degrees.x * t))
+	);
+	// rounding: cos(90°) is 6e-17, not 0; clean it so the page shows 0 (and never "-0")
+	return m.map((row) => row.map((v) => (Math.abs(v) < 1e-12 ? 0 : v)));
 }
 
 /** m · p for a point in homogeneous coordinates (w = 1 for points). */

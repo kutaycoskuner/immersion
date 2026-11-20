@@ -18,7 +18,7 @@
 	//                     Check outputs before relying on them.
 	// -----------------------------------------------------------------------------------------
 	// A matrix (or column vector) in square brackets as HTML, so cells can be inputs: used by
-	// the transformations page's matrix panel (TranslationPanel.svelte) for T, p and p'.
+	// the transformations page's matrix panel (TransformPanel.svelte) for T, p and p'.
 	// Sized in em, so the panel's fitWidth action can shrink a whole equation row to fit.
 	// Typed values are clamped to +-limit; a half-typed value ("", "-") waits until it is a
 	// number, because a number input reports it as "" and Number("") would be 0.

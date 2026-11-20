@@ -11,7 +11,7 @@
 // Run: pnpm test:unit --run
 import { describe, expect, it } from 'vitest';
 import { CROSS_SECTIONS, DOT_SECTIONS } from './vectorDescriptions';
-import { TRANSLATION_SECTIONS } from './transformDescriptions';
+import { SCALING_SECTIONS, TRANSLATION_SECTIONS } from './transformDescriptions';
 import { columnVector, rich, tex } from './vectorTex';
 
 const ok = (html: string) => expect(html).not.toContain('katex-error');
@@ -20,7 +20,8 @@ describe('description texts', () => {
 	const pages = [
 		['dot', DOT_SECTIONS],
 		['cross', CROSS_SECTIONS],
-		['translation', TRANSLATION_SECTIONS]
+		['translation', TRANSLATION_SECTIONS],
+		['scaling', SCALING_SECTIONS]
 	] as const;
 	for (const [name, sections] of pages) {
 		it(`${name}: every inline formula renders`, () => {

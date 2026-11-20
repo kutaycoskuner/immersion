@@ -2,18 +2,20 @@
 	// -----------------------------------------------------------------------------------------
 	//   author          : Kutay Coskuner
 	//   ai-contributors : Claude Opus 5.5 (claude-opus-5-5)
-	//   last update     : 2026-11-19
+	//   last update     : 2026-11-20
 	//   disclaimer      : Provided as is, without warranty of any kind; use at your own risk.
 	//                     Check outputs before relying on them.
 	// -----------------------------------------------------------------------------------------
-	// 3d viewport of the transformations page: a cube at the origin moved by exactly the matrix
-	// the page shows -- M(t) from $lib/transformMath is copied into the cube's matrix (no
-	// position / rotation properties), so what is written is what is drawn. At t > 0 the
-	// starting cube stays as a faint outline, and the typed point p is marked at both ends
-	// with a dashed line for its path. Follows TRANSLATION, POINT and STAGE ($lib/stores/transform)
-	// live. Fills its area (Area.svelte); gizmo, keys and the orthographic switch through a
-	// ViewController.
+	// 3d viewport of the transformations page: a cube at the origin transformed by exactly the
+	// matrix the page shows -- M(t) of the chosen transformation ($lib/transformKinds:
+	// translation, scaling, rotation) is copied into the cube's matrix (no position / scale /
+	// rotation properties), so what is written is what is drawn. Once M(t) is not the identity
+	// the starting cube stays as a faint outline, and the typed point p is marked at both ends
+	// with a dashed path through every stage from 0 to t (a line, or an arc for rotation).
+	// Follows KIND, every kind's values, POINT and STAGE ($lib/stores/transform) live. Fills
+	// its area (Area.svelte); gizmo, keys and the orthographic switch through a ViewController.
 	import { onMount } from 'svelte';
+	import type { Vec3 } from '$lib/vectorMath';
 	import { get } from 'svelte/store';
 	import * as THREE from 'three';
 	import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
@@ -21,14 +23,16 @@
 	import { ViewController } from '$lib/viewGizmo/viewController';
 	import { applyThemeColors, clearGroup, createGrid, disposeGrid } from '$lib/three/sceneHelpers';
 	import { theme } from '$lib/ColorTheme.svelte';
-	import { apply, flat, translation } from '$lib/transformMath';
+	import { apply, flat, identity, type Mat4 } from '$lib/transformMath';
+	import { KINDS, kindById } from '$lib/transformKinds';
 	import {
 		CUBE_SIZE,
+		KIND,
 		POINT,
 		POINT_COLOR,
 		STAGE,
-		TRANSLATION,
-		homogeneous
+		homogeneous,
+		type KindId
 	} from '$lib/stores/transform';
 
 	const CUBE_COLOR = '#4f7cac';
@@ -97,10 +101,35 @@
 		scene.add(helpers);
 
 		// the typed values; each store writes its part and redraws
-		const state = { offset: get(TRANSLATION), point: get(POINT), t: get(STAGE) };
+		const state = {
+			kind: get(KIND),
+			values: {} as Partial<Record<KindId, Vec3>>,
+			point: get(POINT),
+			t: get(STAGE)
+		};
+		const IDENTITY = flat(identity());
+
+		const PATH_SEGMENTS = 48;
+
+		/** M(t) of the chosen transformation (identity for one that isn't ready yet). */
+		function stageMatrix(t = state.t): Mat4 {
+			const kind = kindById(state.kind);
+			const values = state.values[kind.id];
+			return kind.matrix && values ? kind.matrix(values, t) : identity();
+		}
+
+		/** Where the point is at every stage from 0 to t: a line for translation / scaling,
+		 *  an arc for rotation. */
+		function pathPoints(): THREE.Vector3[] {
+			const p = homogeneous(state.point);
+			return Array.from({ length: PATH_SEGMENTS + 1 }, (_, i) => {
+				const [x, y, z] = apply(stageMatrix((state.t * i) / PATH_SEGMENTS), p);
+				return new THREE.Vector3(x, y, z);
+			});
+		}
 
 		function update() {
-			const m = translation(state.offset, state.t);
+			const m = stageMatrix();
 			cube.matrix.set(...(flat(m) as Matrix4Args));
 			cube.matrixWorldNeedsUpdate = true;
 
@@ -109,7 +138,7 @@
 			const [x, y, z] = apply(m, homogeneous(state.point));
 			const end = new THREE.Vector3(x, y, z);
 			helpers.add(dot(end));
-			if (end.distanceToSquared(start) === 0) return; // not moved: nothing to compare with
+			if (flat(m).every((v, k) => v === IDENTITY[k])) return; // unchanged: nothing to compare
 
 			const box = new THREE.BoxGeometry(CUBE_SIZE, CUBE_SIZE, CUBE_SIZE);
 			const ghost = new THREE.LineSegments(
@@ -117,10 +146,12 @@
 				new THREE.LineBasicMaterial({ color: EDGE_COLOR, transparent: true, opacity: 0.25 })
 			);
 			box.dispose(); // only its edges are kept
-			helpers.add(ghost, dot(start, 0.4));
+			helpers.add(ghost);
+			if (end.distanceToSquared(start) === 0) return; // this point stays (e.g. a factor of 1)
+			helpers.add(dot(start, 0.4));
 
 			const path = new THREE.Line(
-				new THREE.BufferGeometry().setFromPoints([start, end]),
+				new THREE.BufferGeometry().setFromPoints(pathPoints()),
 				new THREE.LineDashedMaterial({ color: POINT_COLOR, dashSize: 0.15, gapSize: 0.1 })
 			);
 			path.computeLineDistances();
@@ -129,7 +160,10 @@
 
 		// subscribe calls each handler once right away, which draws the first state
 		const unsubscribers = [
-			TRANSLATION.subscribe((o) => ((state.offset = o), update())),
+			...KINDS.filter((kind) => kind.values).map((kind) =>
+				kind.values!.subscribe((v) => ((state.values[kind.id] = v), update()))
+			),
+			KIND.subscribe((id) => ((state.kind = id), update())),
 			POINT.subscribe((point) => ((state.point = point), update())),
 			STAGE.subscribe((t) => ((state.t = t), update())),
 			theme.themeStore.subscribe(() => applyThemeColors(scene))
