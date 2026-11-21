@@ -2,14 +2,17 @@
 	// -----------------------------------------------------------------------------------------
 	//   author          : Kutay Coskuner
 	//   ai-contributors : Claude Opus 5.5 (claude-opus-5-5)
-	//   last update     : 2026-11-14
+	//   last update     : 2026-11-21
 	//   disclaimer      : Provided as is, without warranty of any kind; use at your own risk.
 	//                     Check outputs before relying on them.
 	// -----------------------------------------------------------------------------------------
 	// Viewport gizmo (Blender style), drawn as SVG over a scene's canvas: the axes X / Y / Z
 	// (red / green / blue, Y up) turn with the camera; a click on an axis bubble turns to that
-	// view (on the current one: the opposite side), a drag on the gizmo orbits; buttons below
-	// reset the view and, where the scene allows it, switch perspective / orthographic.
+	// view (on the current one: the opposite side), a drag on the gizmo orbits; buttons below:
+	// perspective / orthographic (where the scene allows it), the hand instead of the abstract
+	// axes (HandGizmo.svelte: thumb x, index y, middle z), R / L -- which hand the axes follow
+	// (right-handed as three.js, or left-handed as Unity: +z the other way) -- and reset view.
+	// The hand and R / L are shared by every scene's gizmo ($lib/viewGizmo/gizmoSettings).
 	// Only draws and reports -- the camera is moved by the scene's ViewController
 	// ($lib/viewGizmo/viewController.ts); the math is in $lib/viewGizmo/views.ts.
 	// Taken from Bauteilerstellung-2.0 (frontend/src/lib/components/ViewGizmo.svelte), with
@@ -17,6 +20,9 @@
 	// Placed in the scene's positioned wrapper (bottom-right corner).
 	import { onMount } from 'svelte';
 	import { KEY_HELP, projectHandles, type Quat } from '$lib/viewGizmo/views';
+	import { HANDEDNESS, SHOW_HAND } from '$lib/viewGizmo/gizmoSettings';
+	import HandGizmo from '$lib/components/HandGizmo.svelte';
+	import IconHand from '$lib/icons/icon-hand.svelte';
 	import type { ViewController } from '$lib/viewGizmo/viewController';
 	import IconFit from '$lib/icons/icon-fit.svelte';
 	import IconOrthographic from '$lib/icons/icon-orthographic.svelte';
@@ -31,7 +37,7 @@
 
 	let orientation = $state<Quat>([0, 0, 0, 1]);
 	let ortho = $state(false);
-	let handles = $derived(projectHandles(orientation));
+	let handles = $derived(projectHandles(orientation, $HANDEDNESS));
 	let hovered = $state('');
 	let active = $state(false);
 	let press: { id: string; x: number; y: number; dragging: boolean } | undefined;
@@ -88,6 +94,12 @@
 </script>
 
 <div class="gizmo">
+	<!-- the hand in place of the axes; the SVG stays on top (transparent) for dragging -->
+	{#if $SHOW_HAND}
+		{#key $HANDEDNESS}<div class="hand">
+				<HandGizmo {controller} handedness={$HANDEDNESS} />
+			</div>{/key}
+	{/if}
 	<svg
 		viewBox="{-SIZE / 2} {-SIZE / 2} {SIZE} {SIZE}"
 		class:active
@@ -101,7 +113,7 @@
 	>
 		<title>{KEY_HELP}</title>
 		<circle class="disc" r={SIZE / 2 - 1} />
-		{#each handles as h (h.id)}
+		{#each $SHOW_HAND ? [] : handles as h (h.id)}
 			{@const x = h.x * REACH}
 			{@const y = h.y * REACH}
 			{@const dim = 0.55 + (0.45 * (h.depth + 1)) / 2}
@@ -128,7 +140,30 @@
 				{#if ortho}<IconOrthographic />{:else}<IconPerspective />{/if}
 			</button>
 		{/if}
-		<button onclick={() => controller.goHome()} title="Reset view (key . or Home)" aria-label="Reset view">
+		<button
+			class:on={$SHOW_HAND}
+			onclick={() => SHOW_HAND.update((v) => !v)}
+			title={$SHOW_HAND ? 'Show the axes' : 'Show the hand: thumb x, index y, middle finger z'}
+			aria-label={$SHOW_HAND ? 'Show the axes' : 'Show the hand'}
+			aria-pressed={$SHOW_HAND}
+		>
+			<IconHand />
+		</button>
+		<button
+			class="letter"
+			onclick={() => HANDEDNESS.update((h) => (h === 'right' ? 'left' : 'right'))}
+			title={$HANDEDNESS === 'right'
+				? 'Right-handed axes (three.js, OpenGL): click for left-handed (Unity, Direct3D: +z the other way)'
+				: 'Left-handed axes (Unity, Direct3D): click for right-handed (three.js, OpenGL)'}
+			aria-label="{$HANDEDNESS}-handed axes"
+		>
+			{$HANDEDNESS === 'right' ? 'R' : 'L'}
+		</button>
+		<button
+			onclick={() => controller.goHome()}
+			title="Reset view (key . or Home)"
+			aria-label="Reset view"
+		>
 			<IconFit />
 		</button>
 	</div>
@@ -152,11 +187,34 @@
 	}
 
 	svg {
+		position: relative; /* above the hand, which it lets show through */
 		width: 6.25rem;
 		height: 6.25rem;
 		cursor: grab;
 		touch-action: none;
 		overflow: visible;
+	}
+
+	/* the hand in the same square as the axes, under the (then empty) SVG */
+	.hand {
+		position: absolute;
+		top: 0;
+		left: 50%;
+		transform: translateX(-50%);
+		width: 6.25rem;
+		height: 6.25rem;
+		pointer-events: none;
+	}
+
+	button.on {
+		background: color-mix(in srgb, var(--gizmo-col) 22%, var(--gizmo-button-bg));
+		opacity: 1;
+	}
+	/* R / L: a letter instead of an icon */
+	button.letter {
+		font-size: 0.75rem;
+		font-weight: 700;
+		text-align: center;
 	}
 
 	svg.active {

@@ -11,10 +11,17 @@
 // description and the scene (TransformScene.svelte). Kept in stores so leaving and coming
 // back to the page, or switching the transformation, keeps them. What each transformation
 // is (matrix, editable cells, texts) is in $lib/transformKinds.
-import { writable } from 'svelte/store';
+import { derived, writable } from 'svelte/store';
+import type { Placement } from '$lib/transformMath';
 import type { Vec3 } from '$lib/vectorMath';
 
-export type KindId = 'translation' | 'scaling' | 'rotation';
+export type KindId =
+	| 'translation'
+	| 'scaling'
+	| 'rotation'
+	| 'local-to-world'
+	| 'orthographic'
+	| 'perspective';
 export const KIND = writable<KindId>('translation');
 
 export const TRANSLATION = writable<Vec3>({ x: 3, y: 1, z: -2 });
@@ -22,6 +29,16 @@ export const SCALE = writable<Vec3>({ x: 2, y: 1, z: 0.5 });
 // rotation: Euler angles in degrees, applied about x, then y, then z (no quaternions yet);
 // starts as the simple case, 90 degrees about z, which turns the x axis onto the y axis
 export const ROTATION = writable<Vec3>({ x: 0, y: 0, z: 90 });
+// perspective: the eye's distance d from the plane z = 0, kept in z (x and y unused)
+export const PERSPECTIVE = writable<Vec3>({ x: 0, y: 0, z: 4 });
+// local -> world: the object's placement, typed in three rows; PLACEMENT puts them together
+export const MODEL_POSITION = writable<Vec3>({ x: 3, y: 1, z: -1 });
+export const MODEL_ROTATION = writable<Vec3>({ x: 0, y: 45, z: 0 });
+export const MODEL_SCALE = writable<Vec3>({ x: 1, y: 1.5, z: 1 });
+export const PLACEMENT = derived(
+	[MODEL_POSITION, MODEL_ROTATION, MODEL_SCALE],
+	([position, rotation, scale]): Placement => ({ position, rotation, scale })
+);
 
 // 0 = before the move, 1 = after it, anything between while the bar is dragged
 export const STAGE = writable<number>(1);

@@ -143,10 +143,28 @@ export interface ProjectedHandle extends AxisHandle {
 	depth: number;
 }
 
+/** Which hand the axes follow: right-handed (three.js, OpenGL) or left-handed (Unity,
+ *  Direct3D). */
+export type Handedness = 'right' | 'left';
+
+/**
+ * The axis handles as a coordinate system of that handedness names them. The scene itself is
+ * right-handed; read as left-handed, x and y stay and +z is the other way, so the z handles
+ * swap places (and clicking "Z" views from that side).
+ */
+export function handlesFor(handedness: Handedness): AxisHandle[] {
+	if (handedness === 'right') return AXIS_HANDLES;
+	return AXIS_HANDLES.map((h) =>
+		h.id.endsWith('z') ? { ...h, dir: [h.dir[0], h.dir[1], 0 - h.dir[2]] as Vec3 } : h
+	);
+}
+
 /** The handles as seen by a camera with orientation q, back to front (draw order). */
-export function projectHandles(q: Quat): ProjectedHandle[] {
-	return AXIS_HANDLES.map((handle) => {
-		const [x, y, z] = toCamera(handle.dir, q);
-		return { ...handle, x, y: -y, depth: z };
-	}).sort((a, b) => a.depth - b.depth);
+export function projectHandles(q: Quat, handedness: Handedness = 'right'): ProjectedHandle[] {
+	return handlesFor(handedness)
+		.map((handle) => {
+			const [x, y, z] = toCamera(handle.dir, q);
+			return { ...handle, x, y: -y, depth: z };
+		})
+		.sort((a, b) => a.depth - b.depth);
 }

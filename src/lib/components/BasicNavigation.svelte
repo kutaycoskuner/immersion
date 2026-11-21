@@ -1,52 +1,57 @@
 <script lang="ts">
-    import { base } from '$app/paths';
-	import * as config from '$lib/config'
+	// -----------------------------------------------------------------------------------------
+	//   author          : Kutay Coskuner
+	//   ai-contributors : unknown (before 2026-11-21), Claude Opus 5.5 (claude-opus-5-5)
+	//   last update     : 2026-11-21
+	//   disclaimer      : Provided as is, without warranty of any kind; use at your own risk.
+	//                     Check outputs before relying on them.
+	// -----------------------------------------------------------------------------------------
+	// The top navigation of every app page (from src/routes/(app)/+layout.svelte), as a data
+	// list: one entry per page. `active: false` shows a page as plain, dimmed text with a
+	// "later" tooltip instead of a link -- the page itself still exists at its address, it is
+	// only not offered while the work focuses elsewhere (spaces, origami for now).
+	import { base } from '$app/paths';
+
+	const PAGES = [
+		{ path: '', label: 'vectors', active: true },
+		{ path: 'transformations', label: 'transformations', active: true },
+		{ path: 'spaces', label: 'spaces', active: false },
+		{ path: 'unfolding', label: 'unfolding cube', active: true },
+		{ path: 'origami', label: 'origami', active: false },
+		{ path: 'import_gltf', label: 'display model', active: true },
+		{ path: 'keyframe', label: 'motion animation', active: true },
+		{ path: 'pixel', label: 'pixel shader', active: true }
+	];
 </script>
 
-
-<!-- src/lib/components/Nav.svelte -->
 <nav>
-	<a href="{base}/">vectors</a>
-	<a href="{base}/transformations">transformations</a>
-	<a href="{base}/unfolding">unfolding cube</a>
-	<a href="{base}/import_gltf">display model</a>
-	<a href="{base}/keyframe">motion animation</a>
-	<a href="{base}/pixel">pixel shader</a>
-
-	<!-- <a href="{base}/about">about</a> -->
-	<!-- <a href="{base}/blog">blog</a> -->
-	<!-- <a href="{base}/api/posts">md_api</a> -->
-	<!-- <a href="{base}/_test/deeply/nested/route">nesting test</a> -->
+	{#each PAGES as page (page.path)}
+		{#if page.active}
+			<a href="{base}/{page.path}">{page.label}</a>
+		{:else}
+			<span class="inactive" title="{page.label}: later">{page.label}</span>
+		{/if}
+	{/each}
 </nav>
 
 <style>
 	nav {
 		position: fixed;
 		margin: 0;
-		margin-left: .5rem;
+		margin-left: 0.5rem;
 		padding: 0;
 		top: 0;
 		left: 0;
 		z-index: 90;
+		/* the links come from a loop without spaces between them: the gap separates them */
+		display: flex;
+		flex-wrap: wrap;
+		column-gap: 0.6em;
+	}
+	/* a page that is not offered for now: no link, dimmed */
+	.inactive {
+		opacity: 0.35;
+		cursor: default;
+		user-select: none;
 	}
 </style>
-
-<!-- <style>
-	nav {
-		background-color: #333;
-		color: white;
-		padding: 1rem;
-	}
-	ul {
-		display: flex;
-		list-style: none;
-		gap: 1rem;
-	}
-	a {
-		color: white;
-		text-decoration: none;
-	}
-	a:hover {
-		text-decoration: underline;
-	}
-</style> -->

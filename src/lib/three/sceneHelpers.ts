@@ -1,13 +1,14 @@
 // -----------------------------------------------------------------------------------------
 //   author          : Kutay Coskuner
 //   ai-contributors : Claude Opus 5.5 (claude-opus-5-5)
-//   last update     : 2026-11-19
+//   last update     : 2026-11-20
 //   disclaimer      : Provided as is, without warranty of any kind; use at your own risk.
 //                     Check outputs before relying on them.
 // -----------------------------------------------------------------------------------------
 // Building blocks shared by the framed-viewport scenes (ThreeScene.svelte on the vectors
 // page, TransformScene.svelte on the transformations page): the fading ground grid with its
-// x / z axes, the theme colours read from CSS, and freeing a group's GPU resources.
+// x / z axes, the theme colours read from CSS, face label textures (unfolding cube, origami)
+// and freeing a group's GPU resources.
 // Browser only (reads CSS variables of the document).
 import * as THREE from 'three';
 import { fadingGridLines, fadingXAxis, fadingYAxis } from '$lib/materials/gridLines.mat';
@@ -61,6 +62,25 @@ export function createGrid(halfSize = 10): THREE.Group {
 
 export function disposeGrid(group: THREE.Group) {
 	group.traverse((obj) => (obj as THREE.Line).geometry?.dispose());
+}
+
+/** A face's name in dark letters on white, for a face's map: multiplied with its colour. */
+export function labelTexture(name: string): THREE.CanvasTexture {
+	const size = 256;
+	const c = document.createElement('canvas');
+	c.width = c.height = size;
+	const ctx = c.getContext('2d')!;
+	ctx.fillStyle = '#ffffff';
+	ctx.fillRect(0, 0, size, size);
+	ctx.fillStyle = '#1b1b1b';
+	// long names get a smaller font so they fit the face
+	ctx.font = `600 ${Math.min(44, Math.floor((size * 1.6) / Math.max(4, name.length)))}px sans-serif`;
+	ctx.textAlign = 'center';
+	ctx.textBaseline = 'middle';
+	ctx.fillText(name, size / 2, size / 2);
+	const texture = new THREE.CanvasTexture(c);
+	texture.colorSpace = THREE.SRGBColorSpace;
+	return texture;
 }
 
 /** Scene background = the page background, grid lines = the theme's text colour. */

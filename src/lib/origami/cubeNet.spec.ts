@@ -17,7 +17,8 @@ function centres(p: number): Record<FaceName, THREE.Vector3> {
 	setFold(net, p);
 	net.root.updateMatrixWorld(true);
 	const out = {} as Record<FaceName, THREE.Vector3>;
-	for (const spec of FACES) out[spec.name] = net.faces[spec.name].getWorldPosition(new THREE.Vector3());
+	for (const spec of FACES)
+		out[spec.name] = net.faces[spec.name].getWorldPosition(new THREE.Vector3());
 	return out;
 }
 

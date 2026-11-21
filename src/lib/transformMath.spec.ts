@@ -9,8 +9,19 @@
 // checked against three.js so page and scene can't disagree.
 // Run: pnpm test:unit --run
 import { describe, expect, it } from 'vitest';
-import { Euler, MathUtils, Matrix4, Vector3 } from 'three';
-import { apply, flat, identity, rotation, scaling, translation } from './transformMath';
+import { Euler, MathUtils, Matrix4, Quaternion, Vector3 } from 'three';
+import {
+	apply,
+	applyPoint,
+	flat,
+	identity,
+	modelMatrix,
+	orthographic,
+	perspective,
+	rotation,
+	scaling,
+	translation
+} from './transformMath';
 
 const offset = { x: 3, y: 1, z: -2 };
 
@@ -62,7 +73,12 @@ describe('rotation', () => {
 	});
 	it('is the identity at t = 0 and turns part of the angle in between', () => {
 		expect(rotation({ x: 30, y: 45, z: 60 }, 0)).toEqual(identity());
-		near(apply(rotation({ x: 0, y: 0, z: 90 }, 0.5), [1, 0, 0, 1]), [Math.SQRT1_2, Math.SQRT1_2, 0, 1]);
+		near(apply(rotation({ x: 0, y: 0, z: 90 }, 0.5), [1, 0, 0, 1]), [
+			Math.SQRT1_2,
+			Math.SQRT1_2,
+			0,
+			1
+		]);
 	});
 	it('keeps the distance to the origin (moves along an arc)', () => {
 		const p = apply(rotation({ x: 30, y: 45, z: 60 }, 0.37), [1, 2, 3, 1]);
@@ -76,8 +92,89 @@ describe('rotation', () => {
 	it('matches three.js: x first, then y, then z (Euler order ZYX)', () => {
 		const deg = { x: 30, y: -50, z: 120 };
 		const r = MathUtils.degToRad;
-		const expected = new Matrix4().makeRotationFromEuler(new Euler(r(deg.x), r(deg.y), r(deg.z), 'ZYX'));
+		const expected = new Matrix4().makeRotationFromEuler(
+			new Euler(r(deg.x), r(deg.y), r(deg.z), 'ZYX')
+		);
 		const m = new Matrix4().set(...(flat(rotation(deg)) as Parameters<Matrix4['set']>));
 		near(m.elements, expected.elements);
+	});
+});
+
+describe('projections', () => {
+	const none = { x: 0, y: 0, z: 0 };
+	const eye = { x: 0, y: 0, z: 4 }; // d = 4
+	const near = (a: number[], b: number[]) => a.forEach((v, k) => expect(v).toBeCloseTo(b[k], 10));
+
+	it('orthographic flattens z, keeps x and y, and is the identity at t = 0', () => {
+		expect(orthographic(none, 0)).toEqual(identity());
+		expect(apply(orthographic(none), [1, 2, 3, 1])).toEqual([1, 2, 0, 1]);
+		near(apply(orthographic(none, 0.5), [1, 2, 3, 1]), [1, 2, 1.5, 1]);
+	});
+
+	it('orthographic cannot be undone: two points differing only in depth land on one', () => {
+		expect(apply(orthographic(none), [1, 1, -1, 1])).toEqual(
+			apply(orthographic(none), [1, 1, 1, 1])
+		);
+	});
+
+	it('perspective lands a point where the line from the eye through it meets the plane', () => {
+		// eye (0, 0, 4), point (1, 1, 2): the line reaches z = 0 at (1, 1) * 4 / (4 - 2) = (2, 2)
+		near(applyPoint(perspective(eye), [1, 1, 2, 1]), [2, 2, 0, 1]);
+		// a point behind the plane gets smaller: (1, 1, -4) -> (1, 1) * 4 / 8
+		near(applyPoint(perspective(eye), [1, 1, -4, 1]), [0.5, 0.5, 0, 1]);
+		expect(perspective(eye, 0)).toEqual(identity());
+	});
+
+	it('perspective: at every stage the point stays on the line from the eye through it', () => {
+		const p = [1, -0.5, 1.5, 1] as [number, number, number, number];
+		for (const t of [0.25, 0.5, 0.8]) {
+			const q = applyPoint(perspective(eye, t), p);
+			const a = new Vector3(q[0], q[1], q[2] - 4); // q - eye
+			const b = new Vector3(p[0], p[1], p[2] - 4); // p - eye
+			expect(a.clone().cross(b).length()).toBeCloseTo(0, 10);
+		}
+	});
+
+	it('w stays 1 for every affine matrix, so applyPoint is apply there', () => {
+		expect(applyPoint(translation({ x: 1, y: 2, z: 3 }), [1, 1, 1, 1])).toEqual([2, 3, 4, 1]);
+	});
+});
+
+describe('model matrix (local -> world)', () => {
+	const placement = {
+		position: { x: 3, y: 1, z: -2 },
+		rotation: { x: 0, y: 90, z: 0 },
+		scale: { x: 2, y: 1, z: 1 }
+	};
+	const near = (a: number[], b: number[]) => a.forEach((v, k) => expect(v).toBeCloseTo(b[k], 10));
+
+	it('is the identity at t = 0', () => {
+		near(flat(modelMatrix(placement, 0)), flat(identity()));
+	});
+
+	it('scales first, then turns, then moves', () => {
+		// local (1, 0, 0): scaled to (2, 0, 0), turned 90 about y to (0, 0, -2), moved by (3, 1, -2)
+		near(apply(modelMatrix(placement), [1, 0, 0, 1]), [3, 1, -4, 1]);
+		// the object's own origin lands on its position
+		near(apply(modelMatrix(placement), [0, 0, 0, 1]), [3, 1, -2, 1]);
+	});
+
+	it('matches three.js Matrix4.compose (position, rotation x then y then z, scale)', () => {
+		const p = {
+			position: { x: 1, y: -2, z: 0.5 },
+			rotation: { x: 20, y: -35, z: 70 },
+			scale: { x: 1.5, y: 0.5, z: 2 }
+		};
+		const r = MathUtils.degToRad;
+		const q = new Quaternion().setFromEuler(new Euler(r(20), r(-35), r(70), 'ZYX'));
+		const expected = new Matrix4().compose(new Vector3(1, -2, 0.5), q, new Vector3(1.5, 0.5, 2));
+		const m = new Matrix4().set(...(flat(modelMatrix(p)) as Parameters<Matrix4['set']>));
+		near(m.elements, expected.elements);
+	});
+
+	it('can be undone, unlike a projection: the world point leads back to the local one', () => {
+		const m = new Matrix4().set(...(flat(modelMatrix(placement)) as Parameters<Matrix4['set']>));
+		const back = new Vector3(0.3, -0.7, 0.9).applyMatrix4(m).applyMatrix4(m.clone().invert());
+		near(back.toArray(), [0.3, -0.7, 0.9]);
 	});
 });

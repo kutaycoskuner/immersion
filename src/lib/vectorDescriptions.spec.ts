@@ -12,6 +12,8 @@
 import { describe, expect, it } from 'vitest';
 import { CROSS_SECTIONS, DOT_SECTIONS } from './vectorDescriptions';
 import { SCALING_SECTIONS, TRANSLATION_SECTIONS } from './transformDescriptions';
+import { ORTHOGRAPHIC_SECTIONS, PERSPECTIVE_SECTIONS } from './projectionDescriptions';
+import { LOCAL_TO_WORLD_SECTIONS } from './spaceDescriptions';
 import { columnVector, rich, tex } from './vectorTex';
 
 const ok = (html: string) => expect(html).not.toContain('katex-error');
@@ -21,7 +23,10 @@ describe('description texts', () => {
 		['dot', DOT_SECTIONS],
 		['cross', CROSS_SECTIONS],
 		['translation', TRANSLATION_SECTIONS],
-		['scaling', SCALING_SECTIONS]
+		['scaling', SCALING_SECTIONS],
+		['orthographic', ORTHOGRAPHIC_SECTIONS],
+		['perspective', PERSPECTIVE_SECTIONS],
+		['local to world', LOCAL_TO_WORLD_SECTIONS]
 	] as const;
 	for (const [name, sections] of pages) {
 		it(`${name}: every inline formula renders`, () => {

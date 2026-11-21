@@ -21,7 +21,7 @@
 	import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 	import ViewGizmo from '$lib/components/ViewGizmo.svelte';
 	import { ViewController } from '$lib/viewGizmo/viewController';
-	import { applyThemeColors, createGrid, disposeGrid } from '$lib/three/sceneHelpers';
+	import { applyThemeColors, createGrid, disposeGrid, labelTexture } from '$lib/three/sceneHelpers';
 	import { theme } from '$lib/ColorTheme.svelte';
 	import {
 		FACES,
@@ -54,24 +54,6 @@
 	let net: CubeNet | undefined;
 	const materials = {} as Record<FaceName, THREE.MeshStandardMaterial>;
 	const labelTextures = {} as Record<FaceName, THREE.CanvasTexture>;
-
-	/** The face's name in dark letters on white; multiplied with the face colour. */
-	function labelTexture(name: string): THREE.CanvasTexture {
-		const size = 256;
-		const c = document.createElement('canvas');
-		c.width = c.height = size;
-		const ctx = c.getContext('2d')!;
-		ctx.fillStyle = '#ffffff';
-		ctx.fillRect(0, 0, size, size);
-		ctx.fillStyle = '#1b1b1b';
-		ctx.font = '600 44px sans-serif';
-		ctx.textAlign = 'center';
-		ctx.textBaseline = 'middle';
-		ctx.fillText(name, size / 2, size / 2);
-		const texture = new THREE.CanvasTexture(c);
-		texture.colorSpace = THREE.SRGBColorSpace;
-		return texture;
-	}
 
 	function styleFaces(showLabels: boolean, showColors: boolean) {
 		for (const { name } of FACES) {

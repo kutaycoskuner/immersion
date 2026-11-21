@@ -32,6 +32,12 @@ export default defineConfig({
 	server: {
 		watch: {
 			ignored: ['**/.linked_projects/**', '**/_documentation/**', '**/build/**', '**/docs/**']
+		},
+		// the origami models are imported from static/origami ($lib/origami/models.ts), but
+		// SvelteKit lets the dev server read only src, routes, .svelte-kit and node_modules;
+		// this adds that one folder (the build does not check this list)
+		fs: {
+			allow: ['static/origami']
 		}
 	},
 

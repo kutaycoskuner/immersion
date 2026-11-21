@@ -75,7 +75,7 @@ The bar only sets t (`STAGE`); panel, description and scene all compute from it.
 
 | File | What it does |
 | --- | --- |
-| `src/routes/(app)/transformations/[[kind]]/+page.svelte` | the page: the switch (links), the three areas, which description |
+| `src/routes/(app)/transformations/[[kind]]/+page.svelte` | the page: `TransformView.svelte` (the switch, the three areas, which description), shared with the [spaces page](spaces-page.md) |
 | `src/routes/(app)/transformations/[[kind]]/+page.ts` | the transformation from the address, the list of addresses to prerender |
 | `src/lib/transformKinds.ts` | the transformations as data: name, symbol, values store, matrix, editable cells (or separate inputs for rotation), limits |
 | `src/lib/components/TransformPanel.svelte` | the matrix panel for the chosen transformation: the angle row (rotation), both equations and the bar |

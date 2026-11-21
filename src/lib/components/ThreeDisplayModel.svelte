@@ -1,4 +1,15 @@
 <script lang="ts">
+	// -----------------------------------------------------------------------------------------
+	//   author          : Kutay Coskuner
+	//   ai-contributors : unknown (before 2026-11-21), Claude Opus 5.5 (claude-opus-5-5)
+	//   last update     : 2026-11-21
+	//   disclaimer      : Provided as is, without warranty of any kind; use at your own risk.
+	//                     Check outputs before relying on them.
+	// -----------------------------------------------------------------------------------------
+	// Display model page's scene: a test scene (outliner-testscene.gltf) on the fading grid,
+	// lit, with orbit controls, W A S D and the axis gizmo; a model loaded in the settings
+	// overlay is shown too. (The hand of the gizmo's hand button was checked here for a while,
+	// big, with a toolbar toggle; taken out for now, see git history to bring it back.)
 	import { onMount, onDestroy } from 'svelte';
 	import { base } from '$app/paths';
 	import * as THREE from 'three';
@@ -21,6 +32,7 @@
 	let model: THREE.Object3D | null = null;
 
 	const loader = new GLTFLoader();
+
 
 
 	let currentTheme: string;
@@ -161,8 +173,8 @@
 		// Handle window resize
 		const resize = () => {
 			renderer.setSize(window.innerWidth, window.innerHeight);
-			camera.aspect = window.innerWidth / window.innerHeight;
-			camera.updateProjectionMatrix();
+			// both cameras (perspective and orthographic) follow the new shape
+			views.resize(window.innerWidth, window.innerHeight);
 		};
 		window.addEventListener('resize', resize);
 
@@ -191,8 +203,7 @@
 		loader.load(
 			`${base}/scenes/outliner-testscene/gltf/outliner-testscene.gltf`,
 			(gltf) => {
-				const model = gltf.scene;
-				scene.add(model);
+				scene.add(gltf.scene);
 			},
 			undefined,
 			(error) => {
@@ -217,6 +228,7 @@
 		const rotationSpeed = 0.02;
 
 		function updateCamera() {
+			const camera = views.camera; // the active one: perspective or orthographic
 			if (keyStates['w']) {
 				// Move forward
 				camera.position.add(
@@ -249,9 +261,9 @@
 		window.addEventListener('keydown', onKeyDown);
 		window.addEventListener('keyup', onKeyUp);
 
-		// the gizmo's views, drag orbit and keys; made after the start position is set,
-		// which becomes its reset view
-		const views = new ViewController(camera, controls);
+		// the gizmo's views, drag orbit, keys and the perspective / orthographic switch; made
+		// after the start position is set, which becomes its reset view
+		const views = new ViewController(camera, controls, { ortho: true });
 		view = views;
 
 		let frame = 0; // requestAnimationFrame id, cancelled on unmount
@@ -259,7 +271,7 @@
 		function animate() {
 			frame = requestAnimationFrame(animate);
 
-			renderer.render(scene, camera);
+			renderer.render(scene, views.camera); // the active camera (ortho or perspective)
 			views.update();
 			controls.update();
 
@@ -296,4 +308,5 @@
 	<canvas bind:this={canvas} style="display: block; margin: 0; padding: 0; overflow: hidden;"
 	></canvas>
 	{#if view}<ViewGizmo controller={view} />{/if}
+
 </div>

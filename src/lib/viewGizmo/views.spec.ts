@@ -82,6 +82,18 @@ describe('gizmo projection', () => {
 		const depths = projectHandles(cameraQuat({ theta: 0.6, phi: 1 })).map((h) => h.depth);
 		expect(depths).toEqual([...depths].sort((a, b) => a - b));
 	});
+
+	it('left-handed: x and y stay, Z sits where the right-handed -z is', () => {
+		const q = cameraQuat(anglesFor([0, 0, 1])); // front view
+		const left = (id: string) => {
+			const p = projectHandles(q, 'left').find((h) => h.id === id)!;
+			return [p.x, p.y, p.depth].map((n) => Math.round(n * 1000) / 1000 + 0);
+		};
+		expect(left('+x')).toEqual(at(q, '+x'));
+		expect(left('+y')).toEqual(at(q, '+y'));
+		expect(left('+z')).toEqual(at(q, '-z')); // pointing away from the viewer
+		expect(left('-z')).toEqual(at(q, '+z'));
+	});
 });
 
 describe('clicks, transitions, drags', () => {
