@@ -111,7 +111,9 @@ export const SCALING_SECTIONS: Section[] = [
 		title: 'Step 4: self experimentation and comprehension',
 		blocks: [
 			{ text: 'Change $s_x$, $s_y$, $s_z$ on the diagonal and drag the bar.' },
-			{ text: 'a factor of $1$ changes nothing; between $0$ and $1$ the cube shrinks, above $1$ it grows' },
+			{
+				text: 'a factor of $1$ changes nothing; between $0$ and $1$ the cube shrinks, above $1$ it grows'
+			},
 			{ text: 'a factor of $0$ flattens the cube onto a plane; a negative factor mirrors it' },
 			{
 				text: 'the scaling is about the origin: the origin stays, and a point twice as far from it moves twice as much'
@@ -176,12 +178,16 @@ export const ROTATION_SECTIONS: Section[] = [
 		title: 'Step 5: self experimentation and comprehension',
 		blocks: [
 			{ text: 'Change $\theta_x$, $\theta_y$, $\theta_z$ and drag the bar.' },
-			{ text: '$90°$ about $z$ turns the $x$ axis onto the $y$ axis; $360°$ comes back to the start' },
+			{
+				text: '$90°$ about $z$ turns the $x$ axis onto the $y$ axis; $360°$ comes back to the start'
+			},
 			{ text: 'the last column is $0$: the rotation is about the origin, the cube turns in place' },
 			{
 				text: 'lengths and angles stay: the cube never stretches; directions ($w = 0$) turn as well'
 			},
-			{ text: 'try $\theta_x = 90°$ with $\theta_z = 90°$, then think what the other order would give' }
+			{
+				text: 'try $\theta_x = 90°$ with $\theta_z = 90°$, then think what the other order would give'
+			}
 		]
 	}
 ];

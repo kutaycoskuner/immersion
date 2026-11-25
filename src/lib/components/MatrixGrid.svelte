@@ -6,6 +6,10 @@
 		label?: string; // name for screen readers and the hover title, e.g. "t_x"
 		edit?: (value: number) => void;
 		dim?: boolean; // the identity's fixed 0 / 1, shown quieter
+		// an input's own range and step, when it differs from the grid's (+-limit, step)
+		min?: number;
+		max?: number;
+		step?: number;
 	}
 </script>
 
@@ -13,17 +17,22 @@
 	// -----------------------------------------------------------------------------------------
 	//   author          : Kutay Coskuner
 	//   ai-contributors : Claude Opus 5.5 (claude-opus-5-5)
-	//   last update     : 2026-11-19
+	//   last update     : 2026-11-24
 	//   disclaimer      : Provided as is, without warranty of any kind; use at your own risk.
 	//                     Check outputs before relying on them.
 	// -----------------------------------------------------------------------------------------
 	// A matrix (or column vector) in square brackets as HTML, so cells can be inputs: used by
 	// the transformations page's matrix panel (TransformPanel.svelte) for T, p and p'.
 	// Sized in em, so the panel's fitWidth action can shrink a whole equation row to fit.
-	// Typed values are clamped to +-limit; a half-typed value ("", "-") waits until it is a
-	// number, because a number input reports it as "" and Number("") would be 0.
-	let { rows, limit = 8, step = 0.5, label }: { rows: MatrixCell[][]; limit?: number; step?: number; label: string } =
-		$props();
+	// Typed values are clamped to +-limit (or a cell's own min / max); a half-typed value
+	// ("", "-") waits until it is a number, because a number input reports it as "" and
+	// Number("") would be 0.
+	let {
+		rows,
+		limit = 8,
+		step = 0.5,
+		label
+	}: { rows: MatrixCell[][]; limit?: number; step?: number; label: string } = $props();
 
 	const columns = $derived(rows[0]?.length ?? 1);
 
@@ -36,8 +45,10 @@
 		if (text.trim() === '') return;
 		const value = Number(text.replace(',', '.'));
 		if (!Number.isFinite(value)) return;
-		cell.edit?.(Math.min(limit, Math.max(-limit, value)));
+		cell.edit?.(Math.min(hi(cell), Math.max(lo(cell), value)));
 	}
+	const lo = (cell: MatrixCell) => cell.min ?? -limit;
+	const hi = (cell: MatrixCell) => cell.max ?? limit;
 </script>
 
 <div class="matrix" role="group" aria-label={label} style="--columns: {columns}">
@@ -46,13 +57,13 @@
 			{#if cell.edit}
 				<input
 					type="number"
-					{step}
-					min={-limit}
-					max={limit}
+					step={cell.step ?? step}
+					min={lo(cell)}
+					max={hi(cell)}
 					value={cell.value}
 					style:color={cell.color}
 					aria-label={cell.label}
-					title="{cell.label ?? ''} ({-limit} to {limit})"
+					title="{cell.label ?? ''} ({lo(cell)} to {hi(cell)})"
 					oninput={(e) => typed(cell, e.currentTarget.value)}
 				/>
 			{:else}

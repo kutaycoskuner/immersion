@@ -19,9 +19,17 @@
 
 	// one entry per icon, in display order
 	const links: IconLink[] = [
-		{ href: 'https://github.com/kutaycoskuner/immersion', tooltip: 'to github repository', icon: GithubIcon },
+		{
+			href: 'https://github.com/kutaycoskuner/immersion',
+			tooltip: 'to github repository',
+			icon: GithubIcon
+		},
 		{ href: 'https://threejs.org/', tooltip: 'three.js', icon: ThreeIcon },
-		{ href: 'https://kutaycoskuner.github.io/port/computer_science', tooltip: 'other projects', icon: FourCubesIcon }
+		{
+			href: 'https://kutaycoskuner.github.io/port/computer_science',
+			tooltip: 'other projects',
+			icon: FourCubesIcon
+		}
 	];
 
 	const version = __APP_VERSION__;

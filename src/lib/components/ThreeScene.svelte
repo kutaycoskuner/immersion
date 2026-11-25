@@ -73,7 +73,12 @@
 		return sprite;
 	}
 
-	function dashedLine(start: THREE.Vector3, end: THREE.Vector3, color: THREE.ColorRepresentation, opacity = 1) {
+	function dashedLine(
+		start: THREE.Vector3,
+		end: THREE.Vector3,
+		color: THREE.ColorRepresentation,
+		opacity = 1
+	) {
 		const geometry = new THREE.BufferGeometry().setFromPoints([start, end]);
 		const material = new THREE.LineDashedMaterial({
 			color,
@@ -141,13 +146,20 @@
 		const points: THREE.Vector3[] = [];
 		for (let i = 0; i <= segments; i++) {
 			points.push(
-				a.clone().applyAxisAngle(normal, (angle * i) / segments).normalize().multiplyScalar(ARC_RADIUS)
+				a
+					.clone()
+					.applyAxisAngle(normal, (angle * i) / segments)
+					.normalize()
+					.multiplyScalar(ARC_RADIUS)
 			);
 		}
 		const geometry = new THREE.BufferGeometry().setFromPoints(points);
 		group.add(new THREE.Line(geometry, new THREE.LineBasicMaterial({ color: helperColor })));
 
-		const middle = a.clone().applyAxisAngle(normal, angle / 2).normalize();
+		const middle = a
+			.clone()
+			.applyAxisAngle(normal, angle / 2)
+			.normalize();
 		const label = createTextSprite(`${THREE.MathUtils.radToDeg(angle).toFixed(1)}°`, helperColor);
 		label.position.copy(middle.multiplyScalar(ARC_RADIUS + 0.3));
 		group.add(label);
@@ -175,8 +187,12 @@
 		const sb = b.clone().multiplyScalar(VECTOR_SCALE);
 		const corner = sa.clone().add(sb);
 		const geometry = new THREE.BufferGeometry().setFromPoints([
-			new THREE.Vector3(), sa, corner,
-			new THREE.Vector3(), corner, sb
+			new THREE.Vector3(),
+			sa,
+			corner,
+			new THREE.Vector3(),
+			corner,
+			sb
 		]);
 		const material = new THREE.MeshBasicMaterial({
 			color,

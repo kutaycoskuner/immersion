@@ -2,13 +2,14 @@
 	// -----------------------------------------------------------------------------------------
 	//   author          : Kutay Coskuner
 	//   ai-contributors : Claude Opus 5.5 (claude-opus-5-5)
-	//   last update     : 2026-11-20
+	//   last update     : 2026-11-25
 	//   disclaimer      : Provided as is, without warranty of any kind; use at your own risk.
 	//                     Check outputs before relying on them.
 	// -----------------------------------------------------------------------------------------
 	// Matrix panel of the transformations page, for the transformation chosen at the top
 	// (translation T, scaling S, rotation R; $lib/transformKinds), two equation rows with the
-	// matrices side by side, then the stage bar:
+	// matrices side by side, under the stage bar (first, right under the kind switch, so it
+	// is seen without scrolling):
 	//   0. θ = [θx θy θz]°    rotation only: the angles, typed in their own row (the matrix
 	//                         cells are their cos / sin and are shown read-only)
 	//   1. T · p = p'         the full transformation: the kind's cells (translation: last
@@ -16,25 +17,19 @@
 	//                         typed in, p' is the result
 	//   2. M(t) · p = p'(t)   the stage t: every number follows the bar
 	//   bar                   drag t from 0 (before) to 1 (after); the end buttons jump there
-	// Writes the kind's values store, POINT and STAGE ($lib/stores/transform); the scene and
-	// the description follow them live. Each row shrinks to fit the panel instead of
-	// scrolling (fitWidth).
+	// Kinds with `noStage` (camera -> clip: nothing to animate) show only row 1.
+	// Writes the kind's values store, its point (POINT, or its own) and STAGE
+	// ($lib/stores/transform); the scene and the description follow them live. Each row
+	// shrinks to fit the panel instead of scrolling (fitWidth).
 	import { untrack } from 'svelte';
 	import { readable, type Writable } from 'svelte/store';
 	import MatrixGrid, { type MatrixCell } from '$lib/components/MatrixGrid.svelte';
 	import InputRowGrid from '$lib/components/InputRowGrid.svelte';
 	import { fitWidth } from '$lib/actions/fitWidth';
-	import {
-		POINT,
-		POINT_COLOR,
-		STAGE,
-		STAGES,
-		VALUE_LIMIT,
-		homogeneous
-	} from '$lib/stores/transform';
+	import { POINT_COLOR, STAGE, STAGES, VALUE_LIMIT, homogeneous } from '$lib/stores/transform';
 	import { AXIS_COLORS } from '$lib/viewGizmo/views';
 	import { apply, applyPoint, identity, type Mat4 } from '$lib/transformMath';
-	import type { Axis, TransformKind } from '$lib/transformKinds';
+	import { pointStoreOf, type Axis, type TransformKind } from '$lib/transformKinds';
 	import type { Vec3 } from '$lib/vectorMath';
 
 	let { kind }: { kind: TransformKind } = $props();
@@ -51,8 +46,15 @@
 	// from its input rows, which write their own stores -- InputRowGrid.svelte)
 	const vec = $derived(values as Vec3);
 	const editStore = untrack(() => kind.values as Writable<Vec3> | undefined);
+	// the point it follows: the shared POINT, or the kind's own (projections: camera space)
+	const pointStore = untrack(() => pointStoreOf(kind));
+	// every kind starts before its move: re-created per kind, so this runs on each switch
+	STAGE.set(STAGES[0].t);
 
 	const matrixAt = (t: number): Mat4 => (kind.matrix ? kind.matrix(values, t) : identity());
+	// row 2 follows the bar: the kind's own stage when it has one (camera -> clip: the
+	// squeeze only), otherwise t of the way to its matrix
+	const stageAt = (t: number): Mat4 => (kind.stage ? kind.stage(values, t) : matrixAt(t));
 
 	/** The kind's matrix as cells; `editable`: its value cells become inputs. */
 	function matrixCells(m: Mat4, editable: boolean): MatrixCell[][] {
@@ -88,7 +90,7 @@
 							color: POINT_COLOR,
 							label: `p_${AXES[r]}`,
 							edit: editable
-								? (v: number) => POINT.update((o) => ({ ...o, [AXES[r]]: v }))
+								? (v: number) => pointStore.update((o) => ({ ...o, [AXES[r]]: v }))
 								: undefined
 						}
 					]
@@ -98,15 +100,18 @@
 
 	// values typed in their own row: rotation's θ = [θx θy θz], perspective's d
 	const inputs = $derived<MatrixCell[][]>([
-		(kind.inputs ?? []).map(({ axis, symbol }) => ({
+		(kind.inputs ?? []).map(({ axis, symbol, min, max, step }) => ({
 			value: vec[axis],
-			color: kind.inputs!.length > 1 ? AXIS_COLORS[axis] : undefined,
+			color: kind.inputs!.length > 1 && !kind.plainInputs ? AXIS_COLORS[axis] : undefined,
 			label: symbol,
+			min,
+			max,
+			step,
 			edit: (v: number) => editStore?.update((o) => ({ ...o, [axis]: v }))
 		}))
 	]);
 
-	const point = $derived(homogeneous($POINT));
+	const point = $derived(homogeneous($pointStore));
 	const limit = $derived(kind.max ?? VALUE_LIMIT);
 
 	// row 1: the full transformation, editable
@@ -117,15 +122,45 @@
 	const targetDivided = $derived(pointCells(applyPoint(matrixAt(1), point), false));
 
 	// row 2: the stage t, read-only, follows the bar
-	const staged = $derived(matrixCells(matrixAt($STAGE), false));
+	const staged = $derived(matrixCells(stageAt($STAGE), false));
 	const pRead = $derived(pointCells(point, false));
-	const current = $derived(pointCells(apply(matrixAt($STAGE), point), false));
-	const currentDivided = $derived(pointCells(applyPoint(matrixAt($STAGE), point), false));
+	const current = $derived(pointCells(apply(stageAt($STAGE), point), false));
+	const currentDivided = $derived(pointCells(applyPoint(stageAt($STAGE), point), false));
 
 	const tText = $derived($STAGE.toFixed(2));
 </script>
 
 <div class="panel">
+	<!-- the stage bar first, right under the kind switch: seen without scrolling -->
+	{#if !kind.noStage}
+		<div class="stage-bar">
+			<button
+				class="pixel-button"
+				class:selected={$STAGE === STAGES[0].t}
+				onclick={() => STAGE.set(STAGES[0].t)}
+			>
+				{STAGES[0].t} · {STAGES[0].label}
+			</button>
+			<input
+				type="range"
+				min={STAGES[0].t}
+				max={STAGES[1].t}
+				step={T_STEP}
+				value={$STAGE}
+				aria-label="stage t"
+				aria-valuetext="t = {tText}"
+				oninput={(e) => STAGE.set(Number(e.currentTarget.value))}
+			/>
+			<button
+				class="pixel-button"
+				class:selected={$STAGE === STAGES[1].t}
+				onclick={() => STAGE.set(STAGES[1].t)}
+			>
+				{STAGES[1].t} · {STAGES[1].label}
+			</button>
+		</div>
+	{/if}
+
 	{#if kind.inputs}
 		<div class="equation inputs" use:fitWidth={[kind.id, values]}>
 			<span class="name">{kind.valueSymbol}</span>
@@ -144,7 +179,7 @@
 		{#if kind.inputsHint}<span class="hint rows-hint">{kind.inputsHint}</span>{/if}
 	{/if}
 
-	<div class="equation" use:fitWidth={[kind.id, values, $POINT]}>
+	<div class="equation" use:fitWidth={[kind.id, values, $pointStore]}>
 		<span class="name">{kind.symbol}</span>
 		<MatrixGrid rows={full} {limit} step={kind.step} label="{kind.label} matrix {kind.symbol}" />
 		<span class="op">·</span>
@@ -160,47 +195,22 @@
 		{/if}
 	</div>
 
-	<div class="equation live" use:fitWidth={[kind.id, values, $POINT, tText]}>
-		<span class="name">M({tText})</span>
-		<MatrixGrid rows={staged} label="matrix of the stage M(t)" />
-		<span class="op">·</span>
-		<span class="name" style:color={POINT_COLOR}>p</span>
-		<MatrixGrid rows={pRead} label="point p" />
-		<span class="op">=</span>
-		<span class="name" style:color={POINT_COLOR}>p′({tText})</span>
-		<MatrixGrid rows={current} label="point at the stage p′(t)" />
-		{#if kind.divide}
-			<span class="op">÷ w →</span>
-			<MatrixGrid rows={currentDivided} label="the point at the stage after the divide by w" />
-		{/if}
-	</div>
-
-	<div class="stage-bar">
-		<button
-			class="pixel-button"
-			class:selected={$STAGE === STAGES[0].t}
-			onclick={() => STAGE.set(STAGES[0].t)}
-		>
-			{STAGES[0].t} · {STAGES[0].label}
-		</button>
-		<input
-			type="range"
-			min={STAGES[0].t}
-			max={STAGES[1].t}
-			step={T_STEP}
-			value={$STAGE}
-			aria-label="stage t"
-			aria-valuetext="t = {tText}"
-			oninput={(e) => STAGE.set(Number(e.currentTarget.value))}
-		/>
-		<button
-			class="pixel-button"
-			class:selected={$STAGE === STAGES[1].t}
-			onclick={() => STAGE.set(STAGES[1].t)}
-		>
-			{STAGES[1].t} · {STAGES[1].label}
-		</button>
-	</div>
+	{#if !kind.noStage}
+		<div class="equation live" use:fitWidth={[kind.id, values, $pointStore, tText]}>
+			<span class="name">M({tText})</span>
+			<MatrixGrid rows={staged} label="matrix of the stage M(t)" />
+			<span class="op">·</span>
+			<span class="name" style:color={POINT_COLOR}>p</span>
+			<MatrixGrid rows={pRead} label="point p" />
+			<span class="op">=</span>
+			<span class="name" style:color={POINT_COLOR}>p′({tText})</span>
+			<MatrixGrid rows={current} label="point at the stage p′(t)" />
+			{#if kind.divide}
+				<span class="op">÷ w →</span>
+				<MatrixGrid rows={currentDivided} label="the point at the stage after the divide by w" />
+			{/if}
+		</div>
+	{/if}
 </div>
 
 <style>
@@ -247,7 +257,10 @@
 		margin: -0.5rem 0 0;
 	}
 
+	/* the bar: first in the panel, a dashed line under it as between the rows */
 	.stage-bar {
+		padding-bottom: 1rem;
+		border-bottom: 2px dashed var(--col-border, #626262);
 		display: flex;
 		align-items: center;
 		gap: 0.75rem;

@@ -37,9 +37,24 @@
 	const pMoved = colored(POINT_COLOR, "p'");
 
 	// the three axis rotations, symbolic (the kept axis in its colour)
-	const rx = `R_${cx('x')}(\\theta) = ${rows([[cx(1), 0, 0, 0], [0, C, `-${S}`, 0], [0, S, C, 0], [0, 0, 0, 1]])}`;
-	const ry = `R_${cy('y')}(\\theta) = ${rows([[C, 0, S, 0], [0, cy(1), 0, 0], [`-${S}`, 0, C, 0], [0, 0, 0, 1]])}`;
-	const rz = `R_${cz('z')}(\\theta) = ${rows([[C, `-${S}`, 0, 0], [S, C, 0, 0], [0, 0, cz(1), 0], [0, 0, 0, 1]])}`;
+	const rx = `R_${cx('x')}(\\theta) = ${rows([
+		[cx(1), 0, 0, 0],
+		[0, C, `-${S}`, 0],
+		[0, S, C, 0],
+		[0, 0, 0, 1]
+	])}`;
+	const ry = `R_${cy('y')}(\\theta) = ${rows([
+		[C, 0, S, 0],
+		[0, cy(1), 0, 0],
+		[`-${S}`, 0, C, 0],
+		[0, 0, 0, 1]
+	])}`;
+	const rz = `R_${cz('z')}(\\theta) = ${rows([
+		[C, `-${S}`, 0, 0],
+		[S, C, 0, 0],
+		[0, 0, cz(1), 0],
+		[0, 0, 0, 1]
+	])}`;
 
 	/** R_z(θz) R_y(θy) R_x(θx) with the angles written in. */
 	const product = (a: Vec3) =>

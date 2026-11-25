@@ -1,7 +1,7 @@
 // -----------------------------------------------------------------------------------------
 //   author          : Kutay Coskuner
 //   ai-contributors : Claude Opus 5.5 (claude-opus-5-5)
-//   last update     : 2026-11-21
+//   last update     : 2026-11-22
 //   disclaimer      : Provided as is, without warranty of any kind; use at your own risk.
 //                     Check outputs before relying on them.
 // -----------------------------------------------------------------------------------------
@@ -10,18 +10,25 @@
 // the same for all of them: its group (the transformations page, or a category of the spaces
 // page: 3D -> 3D, 3D -> 2D, 2D -> 2D), name, matrix symbol, the store of its typed values,
 // the matrix at the stage t, which values are typed (into matrix cells or their own rows),
-// whether the result is divided by w (perspective), limits. A projection is a
-// transformation too -- one that cannot be undone -- so it lives here with the others.
+// whether the result is divided by w (perspective), limits, and the point it follows
+// (camera -> clip: its own, in camera space). A projection is a transformation too -- one
+// that cannot be undone -- so it lives here with the others.
 // Adding one = an entry here, its matrix function in transformMath.ts, a description data
 // file and component (TransformView.svelte picks it by id).
 import { error } from '@sveltejs/kit';
 import type { Readable, Writable } from 'svelte/store';
 import {
+	CAMERA_EYE,
+	CAMERA_POINT,
+	CAMERA_TARGET,
+	CLIP_FRUSTUM,
+	LOOK,
 	MODEL_POSITION,
 	MODEL_ROTATION,
 	MODEL_SCALE,
 	PERSPECTIVE,
 	PLACEMENT,
+	POINT,
 	ROTATION,
 	SCALE,
 	TRANSLATION,
@@ -29,12 +36,15 @@ import {
 	type KindId
 } from '$lib/stores/transform';
 import {
+	clipPerspective,
+	clipSqueeze,
 	modelMatrix,
 	orthographic,
 	perspective,
 	rotation,
 	scaling,
 	translation,
+	viewMatrix,
 	type Mat4
 } from '$lib/transformMath';
 import type { Vec3 } from '$lib/vectorMath';
@@ -82,10 +92,17 @@ export interface TransformKind {
 	unit?: string;
 	/**
 	 * Values typed in their own row, not into matrix cells (rotation: the angles, whose
-	 * cos / sin fill the matrix; perspective: the eye distance d): which components, and
-	 * the name of each. The matrix is then shown read-only.
+	 * cos / sin fill the matrix; perspective: d; camera -> clip: fov, near, far): which
+	 * components, the name of each and, when it differs from the kind's, its own range.
+	 * The matrix is then shown read-only.
 	 */
-	inputs?: { axis: Axis; symbol: string }[];
+	inputs?: { axis: Axis; symbol: string; min?: number; max?: number; step?: number }[];
+	/** The typed `inputs` are not x, y, z (camera -> clip: fov, near, far): shown without
+	 *  the axis colours. */
+	plainInputs?: boolean;
+	/** The point this kind follows when it is not the shared POINT (the projections: a
+	 *  point in camera space, in front of the eye). */
+	point?: Writable<Vec3>;
 	/** Several rows of typed values, each with its own store (local -> world); the matrix
 	 *  is then shown read-only and `values` is their combination. */
 	inputRows?: InputRow[];
@@ -100,6 +117,13 @@ export interface TransformKind {
 	values?: Writable<Vec3> | Readable<unknown>;
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any -- each kind's own values
 	matrix?: (values: any, t: number) => Mat4;
+	/** The matrix at the stage t, when the bar shows something else than going t of the
+	 *  way to `matrix` (camera -> clip: only the squeeze S; `matrix` is P = F S). */
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any -- each kind's own values
+	stage?: (values: any, t: number) => Mat4;
+	/** No stage row and no bar (camera -> clip: clip space is 4D, nothing to animate; the
+	 *  panel shows only the full transformation). */
+	noStage?: boolean;
 	/** The axis whose value sits in this cell of the matrix, or null for a fixed cell. */
 	editableAxis?: (row: number, col: number) => Axis | null;
 	/** Range of the typed values. */
@@ -109,6 +133,14 @@ export interface TransformKind {
 }
 
 const AXES: Axis[] = ['x', 'y', 'z'];
+
+// camera -> clip and clip -> NDC: a perspective camera's frustum as field of view, near and
+// far, each with its own range (one store, CLIP_FRUSTUM, so both steps share the camera)
+const FRUSTUM_INPUTS: TransformKind['inputs'] = [
+	{ axis: 'x', symbol: 'fov', min: 10, max: 150, step: 5 },
+	{ axis: 'y', symbol: 'near', min: 0.5, max: 5, step: 0.5 },
+	{ axis: 'z', symbol: 'far', min: 2, max: 30, step: 1 }
+];
 
 export const KINDS: TransformKind[] = [
 	{
@@ -185,6 +217,57 @@ export const KINDS: TransformKind[] = [
 		inputsHint: 'M = T · R · S: scale, then rotate (x, y, z), then move'
 	},
 	{
+		id: 'world-to-camera',
+		group: '3d-3d',
+		label: 'world → camera',
+		symbol: 'V',
+		valueSymbol: '',
+		ready: true,
+		values: LOOK,
+		matrix: viewMatrix,
+		// the view matrix V from where the camera stands and what it looks at (lookAt)
+		inputRows: [
+			{ label: 'eye', symbol: 'eye', store: CAMERA_EYE, min: -8, max: 8, step: 0.5 },
+			{ label: 'target', symbol: 'target', store: CAMERA_TARGET, min: -6, max: 6, step: 0.5 }
+		],
+		inputsHint: 'V = Rᵀ · T(−eye): move the eye to the origin, then turn the camera onto x, y, z'
+	},
+	{
+		// 3D -> 3D (in 4D): the matrix P and the clip test; the viewport stays in camera
+		// space, clip space has no shape to draw
+		id: 'clip-space',
+		group: '3d-3d',
+		label: 'camera → clip',
+		symbol: 'P',
+		valueSymbol: '',
+		ready: true,
+		values: CLIP_FRUSTUM,
+		matrix: clipPerspective,
+		point: CAMERA_POINT,
+		inputs: FRUSTUM_INPUTS,
+		inputsHint: 'frustum: fov (°), near, far; aspect 1',
+		plainInputs: true, // not x, y, z
+		noStage: true
+	},
+	{
+		// 3D -> 3D: the divide by w -- the frustum squeezes into the cube, depth kept
+		id: 'ndc',
+		group: '3d-3d',
+		label: 'clip → NDC',
+		symbol: 'P',
+		valueSymbol: '',
+		ready: true,
+		values: CLIP_FRUSTUM, // the same camera as camera -> clip
+		matrix: clipPerspective,
+		// the bar shows the squeeze only; P adds the z mirror, a sign convention
+		stage: clipSqueeze,
+		point: CAMERA_POINT,
+		inputs: FRUSTUM_INPUTS,
+		inputsHint: 'frustum: fov (°), near, far; aspect 1 -- then ÷ w',
+		plainInputs: true,
+		divide: true
+	},
+	{
 		id: 'orthographic',
 		group: '3d-2d',
 		label: 'orthographic',
@@ -212,6 +295,12 @@ export const KINDS: TransformKind[] = [
 		step: 0.5
 	}
 ];
+
+/** The store of the point a kind follows: its own (camera -> clip: camera space) or the
+ *  shared POINT (local or world). */
+export function pointStoreOf(kind: TransformKind): Writable<Vec3> {
+	return kind.point ?? POINT;
+}
 
 export function kindById(id: KindId): TransformKind {
 	return KINDS.find((kind) => kind.id === id) ?? KINDS[0];

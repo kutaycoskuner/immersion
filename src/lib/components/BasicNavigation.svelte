@@ -9,13 +9,13 @@
 	// The top navigation of every app page (from src/routes/(app)/+layout.svelte), as a data
 	// list: one entry per page. `active: false` shows a page as plain, dimmed text with a
 	// "later" tooltip instead of a link -- the page itself still exists at its address, it is
-	// only not offered while the work focuses elsewhere (spaces, origami for now).
+	// only not offered while the work focuses elsewhere (origami for now).
 	import { base } from '$app/paths';
 
 	const PAGES = [
 		{ path: '', label: 'vectors', active: true },
 		{ path: 'transformations', label: 'transformations', active: true },
-		{ path: 'spaces', label: 'spaces', active: false },
+		{ path: 'spaces', label: 'spaces', active: true },
 		{ path: 'unfolding', label: 'unfolding cube', active: true },
 		{ path: 'origami', label: 'origami', active: false },
 		{ path: 'import_gltf', label: 'display model', active: true },

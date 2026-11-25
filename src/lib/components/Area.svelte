@@ -16,8 +16,11 @@
 	import type { Snippet } from 'svelte';
 	import { fitHeight } from '$lib/actions/fitHeight';
 
-	let { title, scroll = false, children }: { title: string; scroll?: boolean; children: Snippet } =
-		$props();
+	let {
+		title,
+		scroll = false,
+		children
+	}: { title: string; scroll?: boolean; children: Snippet } = $props();
 </script>
 
 <section class="area">

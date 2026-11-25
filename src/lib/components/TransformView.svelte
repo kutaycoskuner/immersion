@@ -2,7 +2,7 @@
 	// -----------------------------------------------------------------------------------------
 	//   author          : Kutay Coskuner
 	//   ai-contributors : Claude Opus 5.5 (claude-opus-5-5)
-	//   last update     : 2026-11-21
+	//   last update     : 2026-11-22
 	//   disclaimer      : Provided as is, without warranty of any kind; use at your own risk.
 	//                     Check outputs before relying on them.
 	// -----------------------------------------------------------------------------------------
@@ -24,11 +24,17 @@
 	import ScalingDescription from '$lib/components/ScalingDescription.svelte';
 	import RotationDescription from '$lib/components/RotationDescription.svelte';
 	import LocalToWorldDescription from '$lib/components/LocalToWorldDescription.svelte';
+	import WorldToCameraDescription from '$lib/components/WorldToCameraDescription.svelte';
 	import OrthographicDescription from '$lib/components/OrthographicDescription.svelte';
 	import PerspectiveDescription from '$lib/components/PerspectiveDescription.svelte';
+	import ClipSpaceDescription from '$lib/components/ClipSpaceDescription.svelte';
+	import NdcDescription from '$lib/components/NdcDescription.svelte';
 	import TransformScene from '$lib/components/TransformScene.svelte';
 	import {
+		CAMERA_POINT,
 		KIND,
+		LOOK,
+		CLIP_FRUSTUM,
 		PERSPECTIVE,
 		PLACEMENT,
 		POINT,
@@ -126,10 +132,21 @@
 							<RotationDescription angles={$ROTATION} point={$POINT} t={$STAGE} />
 						{:else if kind.id === 'local-to-world'}
 							<LocalToWorldDescription placement={$PLACEMENT} point={$POINT} t={$STAGE} />
+						{:else if kind.id === 'world-to-camera'}
+							<WorldToCameraDescription
+								look={$LOOK}
+								placement={$PLACEMENT}
+								point={$POINT}
+								t={$STAGE}
+							/>
 						{:else if kind.id === 'orthographic'}
 							<OrthographicDescription point={$POINT} t={$STAGE} />
 						{:else if kind.id === 'perspective'}
 							<PerspectiveDescription eye={$PERSPECTIVE} point={$POINT} t={$STAGE} />
+						{:else if kind.id === 'clip-space'}
+							<ClipSpaceDescription frustum={$CLIP_FRUSTUM} point={$CAMERA_POINT} />
+						{:else if kind.id === 'ndc'}
+							<NdcDescription frustum={$CLIP_FRUSTUM} point={$CAMERA_POINT} t={$STAGE} />
 						{:else}
 							<TranslationDescription offset={$TRANSLATION} point={$POINT} t={$STAGE} />
 						{/if}

@@ -6,11 +6,11 @@ The transformations page (`/transformations`): an animation described with matri
 
 Each transformation has its own address, to send or bookmark:
 
-| Link | Shows |
-| --- | --- |
+| Link                                                                                                  | Shows                                       |
+| ----------------------------------------------------------------------------------------------------- | ------------------------------------------- |
 | [/transformations/translation](https://kutaycoskuner.github.io/immersion/transformations/translation) | translation (also plain `/transformations`) |
-| [/transformations/scaling](https://kutaycoskuner.github.io/immersion/transformations/scaling) | scaling |
-| [/transformations/rotation](https://kutaycoskuner.github.io/immersion/transformations/rotation) | rotation |
+| [/transformations/scaling](https://kutaycoskuner.github.io/immersion/transformations/scaling)         | scaling                                     |
+| [/transformations/rotation](https://kutaycoskuner.github.io/immersion/transformations/rotation)       | rotation                                    |
 
 The switch buttons are these links. It is one route with an optional part (`transformations/[[kind]]`), so switching keeps the page and its viewport; each address is prerendered as its own page for the static site, and an unknown name gives the 404 page.
 
@@ -37,14 +37,14 @@ The switch buttons are these links. It is one route with an optional part (`tran
 
 ## i. matrix
 
+- **the bar** comes first, right under the switch, so it is seen without scrolling: drag t from 0 (before) to 1 (after) in steps of 0.01; **0 · before** and **1 · after** jump to the ends; every transformation starts at t = 0 (also after switching)
 - **first row, editable**: the full transformation times the point, p′ is the result (t = 1)
-    - **translation T**: type t_x, t_y, t_z into the last column (-8 to 8)
-    - **scaling S**: type s_x, s_y, s_z on the diagonal (-4 to 4; 1 = no change, 0 flattens, negative mirrors)
-    - **rotation R**: the angles are typed into their own row above, θ = [θ_x θ_y θ_z] in degrees (-180 to 180), applied about x, then y, then z; R itself is read-only (its cells are cos and sin of the angles); starts at 90° about z
-    - the point p's x, y, z (-8 to 8); w = 1 stays fixed
-    - the typed cells are in the axis colours; a half-typed value ("", "-") waits instead of jumping to 0
+  - **translation T**: type t_x, t_y, t_z into the last column (-8 to 8)
+  - **scaling S**: type s_x, s_y, s_z on the diagonal (-4 to 4; 1 = no change, 0 flattens, negative mirrors)
+  - **rotation R**: the angles are typed into their own row above, θ = [θ_x θ_y θ_z] in degrees (-180 to 180), applied about x, then y, then z; R itself is read-only (its cells are cos and sin of the angles); starts at 90° about z
+  - the point p's x, y, z (-8 to 8); w = 1 stays fixed
+  - the typed cells are in the axis colours; a half-typed value ("", "-") waits instead of jumping to 0
 - **M(t) · p = p′(t)** (read-only): the same at the stage t; every number follows the bar
-- **the bar**: drag t from 0 (before) to 1 (after) in steps of 0.01; **0 · before** and **1 · after** jump to the ends
 - each equation stays on one line: when the area is narrow the row shrinks instead of scrolling (`fitWidth`, see [page layout](page-layout.md))
 
 ## ii. description
@@ -73,18 +73,18 @@ The bar only sets t (`STAGE`); panel, description and scene all compute from it.
 
 ## Files
 
-| File | What it does |
-| --- | --- |
-| `src/routes/(app)/transformations/[[kind]]/+page.svelte` | the page: `TransformView.svelte` (the switch, the three areas, which description), shared with the [spaces page](spaces-page.md) |
-| `src/routes/(app)/transformations/[[kind]]/+page.ts` | the transformation from the address, the list of addresses to prerender |
-| `src/lib/transformKinds.ts` | the transformations as data: name, symbol, values store, matrix, editable cells (or separate inputs for rotation), limits |
-| `src/lib/components/TransformPanel.svelte` | the matrix panel for the chosen transformation: the angle row (rotation), both equations and the bar |
-| `src/lib/components/MatrixGrid.svelte` | a matrix in square brackets as HTML, cells can be inputs |
-| `src/lib/components/TranslationDescription.svelte`, `ScalingDescription.svelte`, `RotationDescription.svelte` | the live formulas of each description |
-| `src/lib/transformDescriptions.ts` | the description texts (data) |
-| `src/lib/components/TransformScene.svelte` | the viewport: cube, outline, point path |
-| `src/lib/transformMath.ts` | 4x4 matrices: identity, translation, scaling, axis rotation, rotation, multiply, apply (tested in `transformMath.spec.ts`, also against three.js) |
-| `src/lib/stores/transform.ts` | the chosen transformation, its values, the point, the stage t, limits and colours |
+| File                                                                                                          | What it does                                                                                                                                      |
+| ------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `src/routes/(app)/transformations/[[kind]]/+page.svelte`                                                      | the page: `TransformView.svelte` (the switch, the three areas, which description), shared with the [spaces page](spaces-page.md)                  |
+| `src/routes/(app)/transformations/[[kind]]/+page.ts`                                                          | the transformation from the address, the list of addresses to prerender                                                                           |
+| `src/lib/transformKinds.ts`                                                                                   | the transformations as data: name, symbol, values store, matrix, editable cells (or separate inputs for rotation), limits                         |
+| `src/lib/components/TransformPanel.svelte`                                                                    | the matrix panel for the chosen transformation: the angle row (rotation), both equations and the bar                                              |
+| `src/lib/components/MatrixGrid.svelte`                                                                        | a matrix in square brackets as HTML, cells can be inputs                                                                                          |
+| `src/lib/components/TranslationDescription.svelte`, `ScalingDescription.svelte`, `RotationDescription.svelte` | the live formulas of each description                                                                                                             |
+| `src/lib/transformDescriptions.ts`                                                                            | the description texts (data)                                                                                                                      |
+| `src/lib/components/TransformScene.svelte`                                                                    | the viewport: cube, outline, point path                                                                                                           |
+| `src/lib/transformMath.ts`                                                                                    | 4x4 matrices: identity, translation, scaling, axis rotation, rotation, multiply, apply (tested in `transformMath.spec.ts`, also against three.js) |
+| `src/lib/stores/transform.ts`                                                                                 | the chosen transformation, its values, the point, the stage t, limits and colours                                                                 |
 
 Tests: `transformMath.spec.ts` (the matrices, against three.js; rotation against `Euler` order `ZYX`), `transformDescriptions.spec.ts` (all three descriptions rendered at t = 0, 0.37 and 1 without KaTeX errors).
 

@@ -1,12 +1,13 @@
 // -----------------------------------------------------------------------------------------
 //   author          : Kutay Coskuner
 //   ai-contributors : unknown (before 2026-11-14), Claude Opus 5.5 (claude-opus-5-5)
-//   last update     : 2026-11-14
+//   last update     : 2026-11-21
 //   disclaimer      : Provided as is, without warranty of any kind; use at your own risk.
 //                     Check outputs before relying on them.
 // -----------------------------------------------------------------------------------------
 // Vite config: SvelteKit + GLSL imports, the $content alias, the version / build date shown in
-// the bottom-left bar (src/lib/components/IconButtons.svelte) and the unit test pattern.
+// the bottom-left bar (src/lib/components/IconButtons.svelte) and the unit tests (pattern,
+// worker pool).
 import { defineConfig } from 'vitest/config';
 import { sveltekit } from '@sveltejs/kit/vite';
 import glsl from 'vite-plugin-glsl';
@@ -42,7 +43,12 @@ export default defineConfig({
 	},
 
 	test: {
-		include: ['src/**/*.{test,spec}.{js,ts}']
+		include: ['src/**/*.{test,spec}.{js,ts}'],
+		// worker threads, not the default child processes: with processes, two test files
+		// loading svelte at the same time (svelte/store and svelte/server) sometimes got a
+		// module cut off (SyntaxError: Unexpected end of input) on this Windows / OneDrive
+		// setup; threads never did, and stay as fast
+		pool: 'threads'
 	},
 
 	resolve: {

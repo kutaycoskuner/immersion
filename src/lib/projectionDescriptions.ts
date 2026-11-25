@@ -1,7 +1,7 @@
 // -----------------------------------------------------------------------------------------
 //   author          : Kutay Coskuner
 //   ai-contributors : Claude Opus 5.5 (claude-opus-5-5)
-//   last update     : 2026-11-21
+//   last update     : 2026-11-25
 //   disclaimer      : Provided as is, without warranty of any kind; use at your own risk.
 //                     Check outputs before relying on them.
 // -----------------------------------------------------------------------------------------
@@ -50,7 +50,7 @@ export const ORTHOGRAPHIC_SECTIONS: Section[] = [
 		title: 'Step 2: the stage t',
 		blocks: [
 			{
-				text: 'Drag the bar: the $z$ row goes from $1$ to $0$, so the cube flattens towards the screen until it is a square.'
+				text: 'Drag the bar: the $z$ row goes from $1$ to $0$, so the cube flattens towards the screen until it is flat: turned 45° about $y$, its two faces become one rectangle.'
 			},
 			{ formula: 'stageGeneral' },
 			{ formula: 'stageValues' }

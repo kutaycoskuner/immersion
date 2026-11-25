@@ -61,7 +61,11 @@ export class ViewController {
 	private home = { position: new Vector3(), target: new Vector3() };
 	private aspect = 1;
 
-	constructor(perspective: PerspectiveCamera, controls: OrbitControls, options: ViewControllerOptions = {}) {
+	constructor(
+		perspective: PerspectiveCamera,
+		controls: OrbitControls,
+		options: ViewControllerOptions = {}
+	) {
 		this.perspective = perspective;
 		this.controls = controls;
 		this.camera = perspective;
@@ -209,7 +213,12 @@ export class ViewController {
 	/** Orthographic frustum for a visible half height h at the current aspect ratio. */
 	private frameOrtho(h: number) {
 		if (!this.orthographic) return;
-		Object.assign(this.orthographic, { top: h, bottom: -h, left: -h * this.aspect, right: h * this.aspect });
+		Object.assign(this.orthographic, {
+			top: h,
+			bottom: -h,
+			left: -h * this.aspect,
+			right: h * this.aspect
+		});
 		this.orthographic.updateProjectionMatrix();
 	}
 }

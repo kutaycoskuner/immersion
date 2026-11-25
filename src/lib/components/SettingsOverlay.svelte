@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import {FileLoader} from 'three';
-	import { GLTFLoader, } from 'three/addons/loaders/GLTFLoader.js';
+	import { FileLoader } from 'three';
+	import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 	import { modelStore } from '../../store/model_store';
 
 	let overlayVisible: boolean = false;
@@ -99,7 +99,6 @@
 		};
 	});
 </script>
-
 
 <!-- Overlay -->
 {#if overlayVisible}

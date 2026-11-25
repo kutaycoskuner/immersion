@@ -44,7 +44,12 @@ export function num(value: number): string {
 }
 
 /** A column vector, `label = [x y z]`, each component in its axis colour. */
-export function columnVector(label: string, labelColor: string, v: Vec3, colors: AxisColors): string {
+export function columnVector(
+	label: string,
+	labelColor: string,
+	v: Vec3,
+	colors: AxisColors
+): string {
 	return `${colored(labelColor, label)} = \\begin{bmatrix}
 	${colored(colors.x, num(v.x))} \\\\
 	${colored(colors.y, num(v.y))} \\\\

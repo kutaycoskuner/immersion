@@ -1,7 +1,7 @@
 <script lang="ts">
-	let count = $state(0)
+	let count = $state(0);
 
-	const increment = () => count++
+	const increment = () => count++;
 </script>
 
 <button onclick={increment}>

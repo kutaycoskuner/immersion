@@ -9,10 +9,10 @@ export const groundMaterial: ShaderMaterial = new ShaderMaterial({
 	// vertexColors: false,
 	side: 2, // DoubleSide
 	uniforms: {
-        uMap: { value: null },                              // texture map
-		uColor: { value: new Color(0xbabfbb) },             // ground base color
-		uPointLightPos: { value: new Vector3(0, 10, 0) },   // will update from scene
-		uPointLightColor: { value: new Color(1, 1, 1) },    // white light
-		uAmbient: { value: new Color(0.1, 0.1, 0.1) }       // ambient contribution
+		uMap: { value: null }, // texture map
+		uColor: { value: new Color(0xbabfbb) }, // ground base color
+		uPointLightPos: { value: new Vector3(0, 10, 0) }, // will update from scene
+		uPointLightColor: { value: new Color(1, 1, 1) }, // white light
+		uAmbient: { value: new Color(0.1, 0.1, 0.1) } // ambient contribution
 	}
 });

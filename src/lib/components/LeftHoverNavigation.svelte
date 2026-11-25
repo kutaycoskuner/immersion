@@ -27,10 +27,12 @@
 	};
 </script>
 
-
-
 <div class="navigation-container0 hover-control touch-control" class:open={toggleNavigation}>
-	<div class="fixed-nav-icon hover-trans-invisible" class:closed={!toggleNavigation} class:inverted-color={invertedColor}>
+	<div
+		class="fixed-nav-icon hover-trans-invisible"
+		class:closed={!toggleNavigation}
+		class:inverted-color={invertedColor}
+	>
 		<img alt="menu-grid" src="icons/menu-grid_256.png" />
 	</div>
 

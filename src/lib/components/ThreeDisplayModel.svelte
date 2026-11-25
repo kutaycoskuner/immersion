@@ -33,8 +33,6 @@
 
 	const loader = new GLTFLoader();
 
-
-
 	let currentTheme: string;
 	const unsubscribeTheme = theme.themeStore.subscribe((value) => {
 		currentTheme = value;
@@ -42,7 +40,6 @@
 
 	// Reactive statement to call the function whenever `currentTheme` changes
 	$: currentTheme && updateSceneBackground();
-
 
 	function showModel(value: THREE.Object3D | null) {
 		if (model) {
@@ -132,8 +129,6 @@
 		return line;
 	}
 
-
-
 	onMount(() => {
 		// Set up the scene
 		// -------------------------------------------------------------------------------
@@ -156,7 +151,7 @@
 		// Set up the camera
 		// -------------------------------------------------------------------------------
 		camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-		
+
 		// Set up the renderer
 		// -------------------------------------------------------------------------------
 		renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
@@ -298,9 +293,7 @@
 		};
 	});
 
-	onDestroy(() => {
-
-	});
+	onDestroy(() => {});
 </script>
 
 <!-- positioned box so the gizmo sits in the canvas' bottom-right corner -->
@@ -308,5 +301,4 @@
 	<canvas bind:this={canvas} style="display: block; margin: 0; padding: 0; overflow: hidden;"
 	></canvas>
 	{#if view}<ViewGizmo controller={view} />{/if}
-
 </div>

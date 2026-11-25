@@ -2,19 +2,19 @@
 
 ## Commands
 
-| Command | What it does |
-| --- | --- |
-| `pnpm dev` | development server at `http://localhost:5173/` |
-| `pnpm check` | type check (svelte-check) |
-| `pnpm test:unit --run` | unit tests (vitest), `src/**/*.spec.ts` |
-| `pnpm build` | static site into `build/` |
-| `pnpm preview` | serve `build/` locally |
+| Command                | What it does                                               |
+| ---------------------- | ---------------------------------------------------------- |
+| `pnpm dev`             | development server at `http://localhost:5173/`             |
+| `pnpm check`           | type check (svelte-check)                                  |
+| `pnpm test:unit --run` | unit tests (vitest), `src/**/*.spec.ts`, in worker threads |
+| `pnpm build`           | static site into `build/`                                  |
+| `pnpm preview`         | serve `build/` locally                                     |
 
 ## Paths and deployment
 
 - the site has no base path (`''`) and uses relative paths, so the built site works from any folder, also under `/immersion` on GitHub Pages; `svelte.config.js` has a `config.paths` line meant for a `/immersion` base in development, but it sits outside `kit`, so SvelteKit ignores it
 - the live site ([kutaycoskuner.github.io/immersion](https://kutaycoskuner.github.io/immersion/)) is the built output, published from the `manual-deploy` branch's `docs/` folder; that is why the project's own documentation lives in `documentation/`, not `docs/`
-- `vite.config.ts` keeps the dev server from watching the symlinked folders (`.linked_projects/`, `_documentation/`), which kept every request waiting on OneDrive, and lets it read `static/origami/` (the origami models are imported from there; SvelteKit's dev server otherwise only reads `src`, `.svelte-kit` and `node_modules`)
+- `vite.config.ts` keeps the dev server from watching the symlinked folders (`.linked_projects/`, `_documentation/`), which kept every request waiting on OneDrive, and lets it read `static/origami/` (the origami models are imported from there; SvelteKit's dev server otherwise only reads `src`, `.svelte-kit` and `node_modules`); its tests run in worker threads (`pool: 'threads'`): with the default child processes, two test files loading svelte at once sometimes failed with a cut-off module (`SyntaxError: Unexpected end of input`)
 
 ## Version and last update
 
@@ -23,7 +23,7 @@ The bottom-left bar shows `v<version> · last update <build date>`. The version 
 ## Pages and scenes
 
 - pages are in `src/routes/(app)/`; their layout (`+layout.svelte`) adds the top navigation (`BasicNavigation.svelte`), the bottom-left bar (`IconButtons.svelte`) and the settings overlay (Esc, `SettingsOverlay.svelte`)
-- a new page also needs its entry in `PAGES` in `BasicNavigation.svelte`; `active: false` shows it dimmed, without a link (the page stays reachable at its address) -- spaces and origami are switched off like this for now
+- a new page also needs its entry in `PAGES` in `BasicNavigation.svelte`; `active: false` shows it dimmed, without a link (the page stays reachable at its address) -- origami is switched off like this for now
 - each 3d scene is a component that builds everything in `onMount` and frees it in the returned cleanup: animation loop (`cancelAnimationFrame`), listeners (named handlers, so they can be removed), store subscriptions, controls, gizmo, geometries and materials, renderer. Without this every visit to a page adds another render loop
 - scenes in framed areas (vectors, transformations) size themselves to their area with a `ResizeObserver`, not to the window
 - `src/lib/three/sceneHelpers.ts`: the fading ground grid with its axes, theme colours (scene background = page background), freeing a group's resources

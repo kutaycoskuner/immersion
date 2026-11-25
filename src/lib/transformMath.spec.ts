@@ -1,7 +1,7 @@
 // -----------------------------------------------------------------------------------------
 //   author          : Kutay Coskuner
 //   ai-contributors : Claude Opus 5.5 (claude-opus-5-5)
-//   last update     : 2026-11-19
+//   last update     : 2026-11-24
 //   disclaimer      : Provided as is, without warranty of any kind; use at your own risk.
 //                     Check outputs before relying on them.
 // -----------------------------------------------------------------------------------------
@@ -9,18 +9,27 @@
 // checked against three.js so page and scene can't disagree.
 // Run: pnpm test:unit --run
 import { describe, expect, it } from 'vitest';
-import { Euler, MathUtils, Matrix4, Quaternion, Vector3 } from 'three';
+import { Euler, MathUtils, Matrix4, PerspectiveCamera, Quaternion, Vector3 } from 'three';
 import {
 	apply,
 	applyPoint,
+	cameraBasis,
+	cameraMatrix,
+	clipPerspective,
+	clipSqueeze,
+	clipTest,
 	flat,
+	frustumHalfSizes,
 	identity,
 	modelMatrix,
+	multiply,
 	orthographic,
 	perspective,
 	rotation,
 	scaling,
-	translation
+	translation,
+	viewMatrix,
+	zMirror
 } from './transformMath';
 
 const offset = { x: 3, y: 1, z: -2 };
@@ -140,6 +149,62 @@ describe('projections', () => {
 	});
 });
 
+describe('camera -> clip (perspective camera)', () => {
+	const frustum = { x: 60, y: 1, z: 15 }; // fov, near, far
+	const close = (a: number[], b: number[]) => a.forEach((v, k) => expect(v).toBeCloseTo(b[k], 10));
+
+	it('matches three.js PerspectiveCamera.projectionMatrix', () => {
+		const camera = new PerspectiveCamera(60, 1, 1, 15);
+		close(flat(clipPerspective(frustum)), camera.projectionMatrix.clone().transpose().elements);
+	});
+
+	it('the bar (the squeeze) is the identity at t = 0', () => {
+		expect(clipSqueeze(frustum, 0)).toEqual(identity());
+		// camera -> clip's own numbers: I at 0, P at 1
+		expect(clipPerspective(frustum, 0)).toEqual(identity());
+		close(flat(clipPerspective(frustum, 1)), flat(clipPerspective(frustum)));
+	});
+
+	it('w is the depth, near lands on -1 and far on +1 after the divide', () => {
+		expect(apply(clipPerspective(frustum), [1, 2, -6, 1])[3]).toBeCloseTo(6, 10);
+		expect(applyPoint(clipPerspective(frustum), [0, 0, -1, 1])[2]).toBeCloseTo(-1, 10);
+		expect(applyPoint(clipPerspective(frustum), [0, 0, -15, 1])[2]).toBeCloseTo(1, 10);
+	});
+
+	it("the frustum's corners land on the corners of the cube", () => {
+		const { near, far } = frustumHalfSizes(frustum);
+		close(applyPoint(clipPerspective(frustum), [near[0], near[1], -1, 1]), [1, 1, -1, 1]);
+		close(applyPoint(clipPerspective(frustum), [-far[0], far[1], -15, 1]), [-1, 1, 1, 1]);
+	});
+
+	it('the clip test: inside the volume, outside to the side, behind the eye', () => {
+		const P = clipPerspective(frustum);
+		expect(clipTest(apply(P, [1, 0.5, -6, 1])).inside).toBe(true);
+		const aside = clipTest(apply(P, [10, 0, -6, 1]));
+		expect([aside.x, aside.y, aside.inside]).toEqual([false, true, false]);
+		expect(clipTest(apply(P, [0, 0, 3, 1])).inside).toBe(false); // w < 0
+		expect(clipTest(apply(P, [0, 0, -20, 1])).z).toBe(false); // beyond far
+	});
+
+	it('at a stage: w stays positive in front of the eye', () => {
+		for (const t of [0.25, 0.5, 0.75])
+			for (const z of [-0.5, -1, -6, -15])
+				expect(apply(clipSqueeze(frustum, t), [0, 0, z, 1])[3]).toBeGreaterThan(0);
+	});
+
+	it('is the squeeze S, then the z mirror F: P = F S', () => {
+		close(flat(multiply(zMirror(), clipSqueeze(frustum))), flat(clipPerspective(frustum)));
+	});
+
+	it('the bar squeezes without near and far crossing, ending in front at -z', () => {
+		for (const t of [0.1, 0.3, 0.5, 0.7, 1]) {
+			const near = applyPoint(clipSqueeze(frustum, t), [0, 0, -1, 1])[2];
+			const far = applyPoint(clipSqueeze(frustum, t), [0, 0, -15, 1])[2];
+			expect(near).toBeGreaterThan(far);
+		}
+	});
+});
+
 describe('model matrix (local -> world)', () => {
 	const placement = {
 		position: { x: 3, y: 1, z: -2 },
@@ -176,5 +241,47 @@ describe('model matrix (local -> world)', () => {
 		const m = new Matrix4().set(...(flat(modelMatrix(placement)) as Parameters<Matrix4['set']>));
 		const back = new Vector3(0.3, -0.7, 0.9).applyMatrix4(m).applyMatrix4(m.clone().invert());
 		near(back.toArray(), [0.3, -0.7, 0.9]);
+	});
+});
+
+describe('view matrix (world -> camera)', () => {
+	const look = { eye: { x: -6, y: 3, z: 4 }, target: { x: 0, y: 1, z: 0 } };
+	const close = (a: number[], b: number[]) => a.forEach((v, i) => expect(v).toBeCloseTo(b[i], 10));
+
+	it('matches three.js: the inverse of a camera placed by lookAt', () => {
+		const camera = new Matrix4().lookAt(
+			new Vector3(-6, 3, 4),
+			new Vector3(0, 1, 0),
+			new Vector3(0, 1, 0)
+		);
+		camera.setPosition(-6, 3, 4);
+		const inverse = camera.clone().invert().transpose(); // row-major as flat() gives
+		close(flat(viewMatrix(look)), inverse.elements);
+		close(flat(cameraMatrix(look)), camera.clone().transpose().elements);
+	});
+	it('takes the eye to the origin and the target straight ahead onto -z', () => {
+		const V = viewMatrix(look);
+		close(apply(V, [-6, 3, 4, 1]), [0, 0, 0, 1]);
+		const [x, y, z] = apply(V, [0, 1, 0, 1]);
+		close([x, y], [0, 0]);
+		expect(z).toBeCloseTo(-Math.hypot(6, 2, 4), 10);
+	});
+	it('is undone by the camera placement, and is the identity at t = 0', () => {
+		close(flat(multiply(cameraMatrix(look), viewMatrix(look))), flat(identity()));
+		expect(viewMatrix(look, 0)).toEqual(identity());
+	});
+	it('brings the eye t of the way to the origin while turning', () => {
+		const d = Math.hypot(-6, 3, 4);
+		const [x, y, z] = apply(viewMatrix(look, 0.5), [-6, 3, 4, 1]);
+		expect(Math.hypot(x, y, z)).toBeCloseTo(d / 2, 10); // a turn keeps lengths
+	});
+	it('keeps right-angled unit axes when looking straight down', () => {
+		const { right, up, back } = cameraBasis({
+			eye: { x: 0, y: 5, z: 0 },
+			target: { x: 0, y: 0, z: 0 }
+		});
+		for (const v of [right, up, back]) expect(Math.hypot(v.x, v.y, v.z)).toBeCloseTo(1, 10);
+		expect(right.x * up.x + right.y * up.y + right.z * up.z).toBeCloseTo(0, 10);
+		expect(back.y).toBeCloseTo(1, 10);
 	});
 });

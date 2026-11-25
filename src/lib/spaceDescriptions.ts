@@ -1,13 +1,14 @@
 // -----------------------------------------------------------------------------------------
 //   author          : Kutay Coskuner
 //   ai-contributors : Claude Opus 5.5 (claude-opus-5-5)
-//   last update     : 2026-11-21
+//   last update     : 2026-11-22
 //   disclaimer      : Provided as is, without warranty of any kind; use at your own risk.
 //                     Check outputs before relying on them.
 // -----------------------------------------------------------------------------------------
-// Texts of the spaces page's 3D -> 3D descriptions (local -> world so far), rendered by
-// DescriptionSections.svelte (shape in $lib/description). { formula } blocks are computed
-// live by LocalToWorldDescription.svelte from the typed placement, point and stage t. The
+// Texts of the spaces page's 3D -> 3D descriptions (local -> world, world -> camera),
+// rendered by DescriptionSections.svelte (shape in $lib/description). { formula } blocks are
+// computed live by LocalToWorldDescription.svelte (from the typed placement, point and stage
+// t) and WorldToCameraDescription.svelte (from the typed eye and target). The
 // 3D -> 2D texts (projections) are projectionDescriptions.ts.
 import type { Section } from '$lib/description';
 
@@ -23,6 +24,12 @@ export const LOCAL_TO_WORLD_SECTIONS: Section[] = [
 			},
 			{
 				text: 'World space: the space the whole scene shares (the grid and the faint world axes in the viewport). Every object is placed into it by its own model matrix.'
+			},
+			{
+				text: 'The orange box is a second object: modelled the same way around its own origin, with its own local axes, but placed by its own model matrix (fixed here). Both meet in one world -- that is what world space is for.'
+			},
+			{
+				text: 'The ground is the $xz$ plane ($y = 0$). The cube is 2 high in local space, so with its position $y$ equal to its scale $y$ it stands on the ground once it is placed ($t = 1$).'
 			},
 			{
 				text: 'Local to world is a 3D to 3D transformation, and it can be undone: world to local is its inverse. That is the difference from a projection (3D to 2D).'
@@ -109,6 +116,111 @@ export const LOCAL_TO_WORLD_SECTIONS: Section[] = [
 			{
 				text: 'a scale of $0$ flattens the cube and the way back is lost: no inverse, like a projection'
 			}
+		]
+	}
+];
+
+export const WORLD_TO_CAMERA_SECTIONS: Section[] = [
+	{
+		title: 'Camera space',
+		blocks: [
+			{
+				text: 'The camera is one more object in the world (the white frame in the viewport), placed like the boxes, with its own axes: $x$ to its right, $y$ up, $z$ backwards. It looks down its own $-z$.'
+			},
+			{
+				text: "Camera space (view space) is the camera's local space: every point measured from the eye, along the camera's own axes. A point straight ahead has $x = y = 0$ and a negative $z$."
+			},
+			{
+				text: 'World to camera is again 3D to 3D: nothing is flattened, depth is kept, and the way back exists. It is the step before the projection, which then only has to look along $-z$ from the origin.'
+			},
+			{
+				text: 'Right-handed (OpenGL, three.js), the camera looks down $-z$; left-handed (DirectX) it looks down $+z$ -- the R / L switch of the hand in the gizmo.'
+			}
+		]
+	},
+	{
+		title: 'Step 1: where it stands, where it looks',
+		blocks: [
+			{
+				text: 'Type the eye (where the camera stands) and the target (what it looks at); its up is the world $y$.'
+			},
+			{ formula: 'look' }
+		]
+	},
+	{
+		title: "Step 2: the camera's axes (lookAt)",
+		blocks: [
+			{
+				text: 'Forward points from the eye to the target; the cross products give the two axes at right angles to it:'
+			},
+			{ formula: 'forward' },
+			{ formula: 'right' },
+			{ formula: 'up' },
+			{
+				text: "The camera's $z$ axis is backwards, $-f$. Looking straight up or down, $f \times y$ is $0$: there the world's $-z$ stands in for up."
+			}
+		]
+	},
+	{
+		title: "Step 3: the camera's own placement",
+		blocks: [
+			{
+				text: 'Placed like any object (local to world), with its axes as the columns of $R$ and no scale:'
+			},
+			{ formula: 'cameraModel' }
+		]
+	},
+	{
+		title: 'Step 4: the view matrix is its inverse',
+		blocks: [
+			{
+				text: "World to camera undoes that placement: move the eye back to the origin, then turn the camera back onto $x$, $y$, $z$. The inverse of a rotation is its transpose, so the camera's axes become the rows:"
+			},
+			{ formula: 'general' },
+			{ formula: 'view' }
+		]
+	},
+	{
+		title: 'Step 5: world to camera',
+		blocks: [
+			{ text: 'The point $p$ is typed in world coordinates here:' },
+			{ formula: 'apply' },
+			{ text: 'The eye itself lands on the origin, the target straight ahead on $-z$:' },
+			{ formula: 'eye' },
+			{ formula: 'target' }
+		]
+	},
+	{
+		title: 'Step 6: the pipeline so far',
+		blocks: [
+			{
+				text: 'A corner of the blue box, $(1, 1, 1)$ in its local space (placed by local to world), reaches camera space through both matrices, read right to left -- first $M$ (local to world), then $V$. Together $V M$ is the model-view matrix:'
+			},
+			{ formula: 'pipeline' }
+		]
+	},
+	{
+		title: 'Step 7: the stage t',
+		blocks: [
+			{
+				text: 'Drag the bar: the world moves $t$ of the way and turns $t$ of the angle, until the camera stands at the origin looking down $-z$. The camera does not move -- everything else does, and the grid of the viewport now stands for camera space.'
+			},
+			{ formula: 'stage' }
+		]
+	},
+	{
+		title: 'Self experimentation and comprehension',
+		blocks: [
+			{
+				text: "only move the eye and target by the same offset: $R$ stays, only $V$'s last column changes"
+			},
+			{
+				text: 'put the target straight in front: eye $(0, 0, 5)$, target $(0, 0, 0)$ -- $V$ is just a move by $-5$ along $z$'
+			},
+			{
+				text: 'a point behind the camera gets a positive $z$: the projection will have to throw it away'
+			},
+			{ text: 'put the eye right above the target: the up is replaced, the picture turns' }
 		]
 	}
 ];

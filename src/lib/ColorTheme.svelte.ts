@@ -2,16 +2,16 @@ import { writable } from 'svelte/store';
 import { browser } from '$app/environment';
 
 class Theme {
-	private _theme = writable(browser && localStorage.getItem('color-scheme') || 'light');
+	private _theme = writable((browser && localStorage.getItem('color-scheme')) || 'light');
 
 	get current() {
 		let value;
-		this._theme.subscribe(v => value = v)();
+		this._theme.subscribe((v) => (value = v))();
 		return value;
 	}
 
 	get themeStore() {
-		return this._theme; 
+		return this._theme;
 	}
 
 	toggle = () => {

@@ -91,7 +91,9 @@ export const CROSS_SECTIONS: Section[] = [
 		title: 'Step 4: self experimentation and comprehension',
 		blocks: [
 			{ text: 'You can test it by giving max, min and mid point values. For instance:' },
-			{ text: 'when the vectors are parallel (or one is zero) the cross product is the zero vector' },
+			{
+				text: 'when the vectors are parallel (or one is zero) the cross product is the zero vector'
+			},
 			{
 				text: 'when the vectors are perpendicular its length is the largest: $|v_1| \\cdot |v_2|$'
 			},

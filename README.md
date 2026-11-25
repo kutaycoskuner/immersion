@@ -83,7 +83,7 @@ More in [development](documentation/development.md): deployment, version bar, ho
 - [Vectors page](documentation/vectors-page.md): dot and cross product, the Controls pane, what the viewport draws, changing the texts
 - [Transformations page](documentation/transformations-page.md): translation, scaling and rotation, the switch, editable matrices, the stage bar, how M(t) works, adding a transformation
 - [Viewport gizmo](documentation/viewport-gizmo.md): axis views, drag orbit, keys, orthographic switch, adding it to a scene
-- [Spaces page](documentation/spaces-page.md): the steps between coordinate spaces -- 3D → 3D (local → world, the model matrix) and 3D → 2D (orthographic and perspective projection, the divide by w)
+- [Spaces page](documentation/spaces-page.md): the steps between coordinate spaces -- 3D → 3D (local → world, the model matrix; world → camera, the view matrix; camera → clip, the matrix P and the clip test; clip → NDC, the divide by w squeezing the frustum into the cube) and 3D → 2D (orthographic and perspective projection, the divide by w)
 - [Origami page](documentation/origami-page.md): folding a flat sheet step by step, the model file format (points, faces, folds), drag and drop, adding a model
 - [Unfolding cube page](documentation/unfolding-page.md): use, toolbar, how the cube's hinges fold, the base for origami
 - [Page layout](documentation/page-layout.md): framed areas, the draggable split, descriptions as data with KaTeX, fit to width, matrices with inputs
@@ -95,7 +95,7 @@ The top-left links switch between the pages; the bottom-left bar links to this r
 
 - **vectors** (`/`): two vectors and a step by step description of their dot or cross product, with the live values ([more](documentation/vectors-page.md))
 - **transformations** (`/transformations`): a cube transformed by a matrix you type in, translation, scaling or rotation (Euler angles), with a 0..1 bar for the stage; each has its own link: `/transformations/translation`, `/scaling`, `/rotation` ([more](documentation/transformations-page.md))
-- **spaces** (`/spaces`) (not linked in the navigation for now): the steps between coordinate spaces under the categories 3D → 3D (local → world: position, rotation, scale make the model matrix; local and world axes in the viewport) and 3D → 2D (orthographic and perspective projection, a transformation that cannot be undone); same panel and stage bar as the transformations page ([more](documentation/spaces-page.md))
+- **spaces** (`/spaces`): the steps between coordinate spaces under the categories 3D → 3D (local → world: position, rotation, scale make the model matrix; local and world axes in the viewport; world → camera: a camera typed as eye and target makes the view matrix by lookAt, the world moves until the camera is at the origin; camera → clip: a perspective camera's frustum with fov, near, far, the clip test; clip → NDC: the divide by w squeezes the frustum into the cube, depth kept) and 3D → 2D (orthographic and perspective projection, a transformation that cannot be undone); same panel and stage bar as the transformations page ([more](documentation/spaces-page.md))
 - **unfolding cube** (`/unfolding`): a cube that turns by itself after 4 s without input, stops when you move, unfolds into its flat net on a click; face names and Blender-style colours as toggles; the reference for the coming origami page ([more](documentation/unfolding-page.md))
 - **origami** (`/origami`) (not linked in the navigation for now): a flat sheet folded into a finished piece, step by step with a bar and play; models are JSON files, bundled ones with their own link (`/origami/dodecahedron`, `/origami/cube`) or dropped on the page ([more](documentation/origami-page.md))
 - **display model** (`/import_gltf`): a lit scene for a model loaded in the settings overlay
@@ -130,7 +130,9 @@ The top-left links switch between the pages; the bottom-left bar links to this r
 - [x] transformations: rotation with Euler angles (x, then y, then z), arc path
 - [ ] transformations: quaternion rotation
 - [x] spaces page: categories 3D → 3D (local → world) and 3D → 2D (orthographic, perspective with the divide by w)
-- [ ] spaces: world → camera (view matrix), 2D → 2D (viewport)
+- [x] spaces: world → camera (view matrix, lookAt)
+- [x] spaces: camera → clip (frustum, clip test) and clip → NDC (the divide by w) under 3D → 3D: depth is kept
+- [ ] spaces: clip → NDC, 2D → 2D (viewport)
 - [x] hand gizmo model: simple low-poly right hand, flat colours with one outline, fingers along the axes in the axis colours
 - [x] gizmo: hand button (hand instead of the axes), R / L for right- and left-handed axes
 - [ ] steps between the vectors: normalize, then move from vector 1 to vector 2

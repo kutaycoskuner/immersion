@@ -186,7 +186,7 @@
 		const objectDepthRT = new THREE.WebGLRenderTarget(pixelW, pixelH);
 		objectDepthRT.texture.minFilter = THREE.NearestFilter;
 		objectDepthRT.texture.magFilter = THREE.NearestFilter;
-		
+
 		objectDepthRT.depthTexture = new THREE.DepthTexture(pixelW, pixelH);
 		objectDepthRT.depthTexture.type = THREE.UnsignedShortType;
 		objectDepthRT.depthBuffer = true;
@@ -196,7 +196,6 @@
 		objectNormalsRT.texture.magFilter = THREE.NearestFilter;
 		objectNormalsRT.texture.format = THREE.RGBAFormat;
 		objectNormalsRT.texture.type = THREE.FloatType;
-		
 
 		// const pixelizationRT = new THREE.WebGLRenderTarget(
 		// 	Math.floor(window.innerWidth / pixelScale),
@@ -459,7 +458,6 @@
 
 			// ---------------------------------------------------------------------------
 
-
 			// PASS 1 — object normals (pixel res)
 			scene.overrideMaterial = normalMaterial;
 			camera.layers.disableAll();
@@ -495,7 +493,6 @@
 			renderer.setViewport(0, 0, window.innerWidth, window.innerHeight);
 			renderer.render(fullscreenPassScene, fullscreenPassCamera);
 
-	
 			// update controls + helpers
 			// ---------------------------------------------------------------------------
 			views.update();

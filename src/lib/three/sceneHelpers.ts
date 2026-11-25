@@ -54,7 +54,10 @@ export function createGrid(halfSize = 10): THREE.Group {
 	const group = new THREE.Group();
 	for (let i = -halfSize; i < halfSize; i++) {
 		if (i === 0) continue;
-		group.add(gridLine(halfSize, i, false, fadingGridLines), gridLine(halfSize, i, true, fadingGridLines));
+		group.add(
+			gridLine(halfSize, i, false, fadingGridLines),
+			gridLine(halfSize, i, true, fadingGridLines)
+		);
 	}
 	group.add(gridLine(halfSize, 0, true, fadingXAxis), gridLine(halfSize, 0, false, fadingYAxis));
 	return group;
