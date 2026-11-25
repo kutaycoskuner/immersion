@@ -1,0 +1,430 @@
+{
+	"format": "immersion-fold",
+	"version": 1,
+	"name": "dodecahedron",
+	"unit": "edge length 1",
+	"points": {
+		"p0": [
+			0.0,
+			0.0
+		],
+		"p1": [
+			1.0,
+			0.0
+		],
+		"p2": [
+			1.3090169944,
+			0.9510565163
+		],
+		"p3": [
+			0.5,
+			1.5388417686
+		],
+		"p4": [
+			-0.3090169944,
+			0.9510565163
+		],
+		"p5": [
+			-0.3090169944,
+			-0.9510565163
+		],
+		"p6": [
+			0.5,
+			-1.5388417686
+		],
+		"p7": [
+			1.3090169944,
+			-0.9510565163
+		],
+		"p8": [
+			2.6180339887,
+			0.0
+		],
+		"p9": [
+			2.3090169944,
+			0.9510565163
+		],
+		"p10": [
+			1.8090169944,
+			-0.5877852523
+		],
+		"p11": [
+			0.8090169944,
+			2.4898982849
+		],
+		"p12": [
+			2.1180339887,
+			1.5388417686
+		],
+		"p13": [
+			1.8090169944,
+			2.4898982849
+		],
+		"p14": [
+			0.1909830056,
+			2.4898982849
+		],
+		"p15": [
+			-0.8090169944,
+			2.4898982849
+		],
+		"p16": [
+			-1.1180339887,
+			1.5388417686
+		],
+		"p17": [
+			-1.3090169944,
+			0.9510565163
+		],
+		"p18": [
+			-1.6180339887,
+			-0.0
+		],
+		"p19": [
+			-0.8090169944,
+			-0.5877852523
+		],
+		"p20": [
+			-1.1180339887,
+			-1.5388417686
+		],
+		"p21": [
+			-0.8090169944,
+			-2.4898982849
+		],
+		"p22": [
+			0.1909830056,
+			-2.4898982849
+		],
+		"p23": [
+			-0.3090169944,
+			-4.0287400535
+		],
+		"p24": [
+			0.5,
+			-3.4409548012
+		],
+		"p25": [
+			-1.1180339887,
+			-3.4409548012
+		],
+		"p26": [
+			0.0,
+			-4.9797965698
+		],
+		"p27": [
+			1.0,
+			-4.9797965698
+		],
+		"p28": [
+			1.3090169944,
+			-4.0287400535
+		],
+		"p29": [
+			1.8090169944,
+			-2.4898982849
+		],
+		"p30": [
+			1.0,
+			-1.9021130326
+		],
+		"p31": [
+			1.5,
+			-3.4409548012
+		],
+		"p32": [
+			-1.6180339887,
+			-1.9021130326
+		],
+		"p33": [
+			-2.4270509831,
+			-2.4898982849
+		],
+		"p34": [
+			-2.1180339887,
+			-3.4409548012
+		],
+		"p35": [
+			-1.9270509831,
+			-4.0287400535
+		],
+		"p36": [
+			-1.6180339887,
+			-4.9797965698
+		],
+		"p37": [
+			-0.6180339887,
+			-4.9797965698
+		]
+	},
+	"faces": {
+		"base": {
+			"points": [
+				"p0",
+				"p1",
+				"p2",
+				"p3",
+				"p4"
+			],
+			"base": true
+		},
+		"petal1": {
+			"points": [
+				"p5",
+				"p6",
+				"p7",
+				"p1",
+				"p0"
+			]
+		},
+		"petal2": {
+			"points": [
+				"p8",
+				"p9",
+				"p2",
+				"p1",
+				"p10"
+			]
+		},
+		"petal3": {
+			"points": [
+				"p11",
+				"p3",
+				"p2",
+				"p12",
+				"p13"
+			]
+		},
+		"petal4": {
+			"points": [
+				"p4",
+				"p3",
+				"p14",
+				"p15",
+				"p16"
+			]
+		},
+		"petal5": {
+			"points": [
+				"p4",
+				"p17",
+				"p18",
+				"p19",
+				"p0"
+			]
+		},
+		"bridge": {
+			"points": [
+				"p20",
+				"p21",
+				"p22",
+				"p6",
+				"p5"
+			]
+		},
+		"lid": {
+			"points": [
+				"p23",
+				"p24",
+				"p22",
+				"p21",
+				"p25"
+			]
+		},
+		"lidpetal1": {
+			"points": [
+				"p26",
+				"p27",
+				"p28",
+				"p24",
+				"p23"
+			]
+		},
+		"lidpetal2": {
+			"points": [
+				"p29",
+				"p30",
+				"p22",
+				"p24",
+				"p31"
+			]
+		},
+		"lidpetal3": {
+			"points": [
+				"p25",
+				"p21",
+				"p32",
+				"p33",
+				"p34"
+			]
+		},
+		"lidpetal4": {
+			"points": [
+				"p25",
+				"p35",
+				"p36",
+				"p37",
+				"p23"
+			]
+		}
+	},
+	"folds": [
+		{
+			"id": "fold-petal1",
+			"line": [
+				"p0",
+				"p1"
+			],
+			"fixed": "base",
+			"moving": "petal1",
+			"direction": "valley",
+			"angle": 63.4349488229,
+			"step": 1,
+			"type": "hinge"
+		},
+		{
+			"id": "fold-petal2",
+			"line": [
+				"p1",
+				"p2"
+			],
+			"fixed": "base",
+			"moving": "petal2",
+			"direction": "valley",
+			"angle": 63.4349488229,
+			"step": 1,
+			"type": "hinge"
+		},
+		{
+			"id": "fold-petal3",
+			"line": [
+				"p2",
+				"p3"
+			],
+			"fixed": "base",
+			"moving": "petal3",
+			"direction": "valley",
+			"angle": 63.4349488229,
+			"step": 1,
+			"type": "hinge"
+		},
+		{
+			"id": "fold-petal4",
+			"line": [
+				"p3",
+				"p4"
+			],
+			"fixed": "base",
+			"moving": "petal4",
+			"direction": "valley",
+			"angle": 63.4349488229,
+			"step": 1,
+			"type": "hinge"
+		},
+		{
+			"id": "fold-petal5",
+			"line": [
+				"p4",
+				"p0"
+			],
+			"fixed": "base",
+			"moving": "petal5",
+			"direction": "valley",
+			"angle": 63.4349488229,
+			"step": 1,
+			"type": "hinge"
+		},
+		{
+			"id": "fold-bridge",
+			"line": [
+				"p5",
+				"p6"
+			],
+			"fixed": "petal1",
+			"moving": "bridge",
+			"direction": "valley",
+			"angle": 63.4349488229,
+			"step": 3,
+			"type": "hinge"
+		},
+		{
+			"id": "fold-lid",
+			"line": [
+				"p21",
+				"p22"
+			],
+			"fixed": "bridge",
+			"moving": "lid",
+			"direction": "valley",
+			"angle": 63.4349488229,
+			"step": 3,
+			"type": "hinge"
+		},
+		{
+			"id": "fold-lidpetal1",
+			"line": [
+				"p23",
+				"p24"
+			],
+			"fixed": "lid",
+			"moving": "lidpetal1",
+			"direction": "valley",
+			"angle": 63.4349488229,
+			"step": 2,
+			"type": "hinge"
+		},
+		{
+			"id": "fold-lidpetal2",
+			"line": [
+				"p24",
+				"p22"
+			],
+			"fixed": "lid",
+			"moving": "lidpetal2",
+			"direction": "valley",
+			"angle": 63.4349488229,
+			"step": 2,
+			"type": "hinge"
+		},
+		{
+			"id": "fold-lidpetal3",
+			"line": [
+				"p21",
+				"p25"
+			],
+			"fixed": "lid",
+			"moving": "lidpetal3",
+			"direction": "valley",
+			"angle": 63.4349488229,
+			"step": 2,
+			"type": "hinge"
+		},
+		{
+			"id": "fold-lidpetal4",
+			"line": [
+				"p25",
+				"p23"
+			],
+			"fixed": "lid",
+			"moving": "lidpetal4",
+			"direction": "valley",
+			"angle": 63.4349488229,
+			"step": 2,
+			"type": "hinge"
+		}
+	],
+	"steps": [
+		{
+			"step": 1,
+			"label": "raise the five petals around the base: a bowl"
+		},
+		{
+			"step": 2,
+			"label": "raise the four petals around the lid"
+		},
+		{
+			"step": 3,
+			"label": "swing the lid over and close the solid"
+		}
+	]
+}
